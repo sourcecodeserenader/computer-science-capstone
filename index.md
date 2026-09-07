@@ -9,4 +9,4 @@ This ePortfolio documents my growth throughout the Computer Science program and 
 - Algorithms and Data Structures
 - Databases
 
-Additional artifacts, enhancement narratives, the code review, and my professional self-assessment will be added throughout the capstone.
+Extra artifacts, enhancement narratives, the code review, and my professional self-assessment will be added throughout the capstone
