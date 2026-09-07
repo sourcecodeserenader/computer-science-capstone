@@ -1,7 +1,7 @@
 # Bri Reed
 ## Computer Science Capstone ePortfolio
 
-**CS 499 | Southern New Hampshire University**
+CS 499 | Southern New Hampshire University
 
 This ePortfolio documents my growth throughout the Computer Science program and the enhancement of a software artifact across three areas:
 
