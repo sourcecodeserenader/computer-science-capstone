@@ -1,0 +1,5309 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Database enhancement | Brianna Reed</title><meta name="description" content="Brianna Reed Computer Science Capstone portfolio showing software design, algorithms and database enhancements"><link rel="stylesheet" href="assets/style.css"></head><body><a class="skip" href="#main">Skip to content</a><header><div class="brand">Brianna Reed</div><p>Computer Science Capstone · Southern New Hampshire University</p><nav aria-label="Main navigation"><a href="index.html">Self assessment</a><a href="code-review.html">Code review</a><a href="engineering.html">Software design</a><a href="algorithms.html">Algorithms</a><a href="databases.html" aria-current="page">Databases</a><a href="evidence.html">Evidence and files</a></nav></header><main id="main"><p class="eyebrow">Milestone Four</p><h1>Database enhancement</h1><p class="lead">The third enhancement adds SQLite persistence and expands the demonstration into AURELIA Wealth Studio, with stored profiles, advisor workflows and reconciled reporting.</p><div class="links"><a class="button" href="downloads/databases.docx">Download narrative in Word</a><a class="button secondary" href="downloads/aurelia-application.zip">Download complete artifact</a><a class="button secondary" href="source/database/AureliaDesktop.cpp">Download main source</a></div><figure><img src="assets/dashboard.png" alt="AURELIA dashboard showing administered assets, 25 client relationships, allocation percentages and dated portfolio value snapshots" loading="lazy"><figcaption>Verified database demonstration captured October 11, 2026. Date dependent values are historical.</figcaption></figure><p>To run on Windows x64, extract the application ZIP and double click START_AURELIA.cmd. Demonstration login: demo_admin and AureliaDemo2026. The included Release executable uses the static C++ runtime; Visual Studio 2022 is available for rebuilding the source.</p><section><h2>Artifact background</h2><p>I selected my CS 410 Software Reverse Engineering Project One client management application for this enhancement. The original artifact was created during CS 410 before my CS 499 capstone. It used global client data, repeated conditional logic and a simple password comparison. I completed the database enhancement on October 11, 2026, building on the software engineering and algorithms enhancements submitted earlier in this course.</p><p>Using the same artifact allows my ePortfolio to show a continuous progression. Milestone Two introduced modular responsibilities, validation, authentication controls and logging. Milestone Three added structures for searching, sorting, filtering and ranking while intentionally keeping client information in memory. Milestone Four addresses the next limitation by preserving related information between program sessions.</p></section><section><h2>Database enhancement and portfolio value</h2><p>The enhanced artifact is AURELIA Wealth Studio, a Windows desktop application built in Visual Studio 2022 with C++17 and WinSQLite. The relational database connects clients with accounts, holdings, securities, transactions, portfolio snapshots, financial goals, advisor tasks, notes and audit events. Separate tables make relationships explicit and reduce repeated information. Foreign keys and integrity checks help identify broken relationships.</p><p>I selected this artifact because it demonstrates how an existing system can become more reliable while retaining its earlier functionality. The implementation uses prepared statements to bind values, transactions to protect related changes, validation before saving and additive migrations that preserve existing records. Client profiles, financial goal forms and the advisor ticket desk connect database operations to practical application workflows.</p><p>The demonstration contains 25 distinct fictional clients. Dashboard calculations and reports use stored holdings and modeled security prices. Individual PDF reports and Excel workbooks make those records reviewable, and native Excel charts use worksheet data. These components demonstrate that persistence supports both client management and communication.</p></section><section><h2>Course outcomes and coverage</h2><p>This enhancement provides my strongest new evidence for Outcome Four, applying computing techniques and tools to deliver value, and Outcome Five, developing a security mindset. Relational design, prepared statements, migrations and transactions demonstrate the database focus. Bound inputs, validation, foreign keys, backups and audit events reduce opportunities for invalid changes and support accountability.</p><p>It also supports Outcome Three through data access, sorting and calculation choices, and Outcome Two through labeled visualizations, reports and this narrative. The work follows the progression documented in my earlier journals from software design to algorithms and persistent storage. My coverage is stronger, but I do not treat this enhancement as complete mastery of every outcome. The final portfolio connects these contributions with the communication and instructor review process described in my professional self assessment.</p></section><section><h2>Learning and challenges</h2><p>The most useful lesson from this enhancement is that saving data successfully does not establish data integrity. Related changes need clear rules, and those rules must be tested when an operation fails. Prepared statements, transactions and foreign keys connected database design with the defensive programming approach established in my earlier enhancement.</p><p>Preserving the demonstration records was an important challenge. Duplicate profiles were converted into distinct fictional identities after a backup while retaining their identifiers and related financial records. Startup seeding also needed to avoid creating those identities again. Comparing the client directory, dashboard and exported reports with SQLite calculations helped identify discrepancies that visual inspection alone could miss.</p><p>Testing exposed a Windows SQLite date issue affecting overdue tasks. Correcting the business date calculation restored the expected six overdue tickets. The final Debug x64 solution build completed with zero errors and 24 nonfatal conversion warnings. Database workflow tests passed 111 assertions on an isolated copy, and ticket and client interface tests passed 298 assertions. All 26 PDFs, 26 workbooks and 52 native Excel charts were checked.</p></section><section><h2>Remaining work</h2><p>The application remains a fictional capstone demonstration. Dated public market observations are separate from modeled portfolio prices, and successful live provider retrieval has not been tested. Demonstration authentication and an unencrypted SQLite file leave production security work for a future version. My next step is to expand regression coverage and strengthen production security practices beyond this fictional demonstration.</p></section><section><h2>Final portfolio revision and feedback</h2><p>In the final portfolio revision on October 18, 2026, I used the instructor feedback to make the relationship between technical work, review and collaboration more explicit. The review recognized the relational design and testing evidence and asked how feedback and collaboration support the remaining outcomes. My response is to show a traceable review cycle: identify a requested improvement, add specific checks or explanations, and publish the evidence and its limits so another reader can assess the result.</p><p>This process supports Outcome One through shared expectations and responsive documentation, and Outcome Two through clear explanations, accessible navigation and reports for different audiences. I have not claimed a team project or stakeholder meetings that did not occur. The strongest technical evidence remains in Outcomes Four and Five, with algorithmic calculations and sortable views supporting Outcome Three. The original database verification was completed on October 11, 2026; its recorded counts and business date checks are historical test evidence, not a promise that date dependent dashboard counts remain constant.</p></section><h2>Read the implementation</h2><details><summary>Read desktop entry point</summary><pre><code>/*
+ * AURELIA ATELIER | WEALTH OPERATIONS
+ * CS 499 Computer Science Capstone
+ * Milestone Four: Enhancement Three, Databases
+ * Student: Brianna Reed
+ *
+ * Windows desktop interface for the relational
+ * portfolio intelligence system
+ *
+ * All records are fictional demonstration data
+ */
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include &lt;windows.h&gt;
+#include &lt;commctrl.h&gt;
+#include &lt;commdlg.h&gt;
+#include &lt;gdiplus.h&gt;
+#include &lt;shellapi.h&gt;
+
+#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;cwchar&gt;
+#include &lt;iomanip&gt;
+#include &lt;optional&gt;
+#include &lt;sstream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+#include &quot;InvestmentCore.h&quot;
+#include &quot;InvestmentAnalytics.h&quot;
+#include &quot;PdfReportWriter.h&quot;
+#include &quot;ExcelExporter.h&quot;
+
+#pragma comment(lib, &quot;Comctl32.lib&quot;)
+#pragma comment(lib, &quot;Comdlg32.lib&quot;)
+#pragma comment(lib, &quot;Gdiplus.lib&quot;)
+#pragma comment(lib, &quot;Shell32.lib&quot;)
+
+using namespace Gdiplus;
+
+
+// ============================================================
+// BRAND COLORS
+// ============================================================
+
+static const Color COLOR_WHITE(
+    255, 255, 255, 255);
+
+static const Color COLOR_CREAM(
+    255, 246, 240, 230);
+
+static const Color COLOR_TEXT(
+    255, 29, 38, 42);
+
+static const Color COLOR_MUTED(
+    255, 100, 96, 91);
+
+static const Color COLOR_GOLD(
+    255, 173, 132, 68);
+
+static const Color COLOR_SAGE(
+    255, 128, 143, 108);
+
+static const Color COLOR_TERRACOTTA(
+    255, 168, 103, 88);
+
+static const Color COLOR_DARK(
+    255, 29, 38, 42);
+
+static const Color COLOR_LINE(
+    255, 217, 207, 192);
+
+static const Color COLOR_SOFT_GOLD(
+    255, 251, 242, 226);
+
+
+// ============================================================
+// STRING HELPERS
+// ============================================================
+
+static std::wstring widen(
+    const std::string&amp; value) {
+
+    if (value.empty()) {
+
+        return L&quot;&quot;;
+    }
+
+    const int size =
+        MultiByteToWideChar(
+            CP_UTF8,
+            0,
+            value.c_str(),
+            static_cast&lt;int&gt;(
+                value.size()),
+            nullptr,
+            0);
+
+    std::wstring result(
+        size,
+        L&#x27;\0&#x27;);
+
+    MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        value.c_str(),
+        static_cast&lt;int&gt;(
+            value.size()),
+        result.data(),
+        size);
+
+    return result;
+}
+
+
+static std::string narrow(
+    const std::wstring&amp; value) {
+
+    if (value.empty()) {
+
+        return &quot;&quot;;
+    }
+
+    const int size =
+        WideCharToMultiByte(
+            CP_UTF8,
+            0,
+            value.c_str(),
+            static_cast&lt;int&gt;(
+                value.size()),
+            nullptr,
+            0,
+            nullptr,
+            nullptr);
+
+    std::string result(
+        size,
+        &#x27;\0&#x27;);
+
+    WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        value.c_str(),
+        static_cast&lt;int&gt;(
+            value.size()),
+        result.data(),
+        size,
+        nullptr,
+        nullptr);
+
+    return result;
+}
+
+
+static std::wstring controlText(
+    HWND control) {
+
+    const int length =
+        GetWindowTextLengthW(
+            control);
+
+    std::wstring result(
+        length +
+        1,
+        L&#x27;\0&#x27;);
+
+    GetWindowTextW(
+        control,
+        result.data(),
+        length +
+        1);
+
+    result.resize(
+        length);
+
+    return result;
+}
+
+
+static std::wstring moneyText(double value) {
+    std::wostringstream out;out&lt;&lt;std::fixed&lt;&lt;std::setprecision(0)&lt;&lt;std::fabs(value);
+    std::wstring digits=out.str();for(size_t i=digits.size();i&gt;3;i-=3)digits.insert(i-3,L&quot;,&quot;);
+    return std::wstring(value&lt;0?L&quot;-$&quot;:L&quot;$&quot;)+digits;
+}
+
+static std::wstring percentText(
+    double value) {
+
+    std::wostringstream output;
+
+    output
+        &lt;&lt; std::showpos
+        &lt;&lt; std::fixed
+        &lt;&lt; std::setprecision(
+            1)
+        &lt;&lt; value
+        &lt;&lt; L&quot;%&quot;;
+
+    return output.str();
+}
+
+
+static std::wstring environmentValue(
+    const wchar_t* name) {
+
+    wchar_t* value =
+        nullptr;
+
+    size_t length =
+        0;
+
+    _wdupenv_s(
+        &amp;value,
+        &amp;length,
+        name);
+
+    std::wstring result =
+        value
+        ? value
+        : L&quot;&quot;;
+
+    std::free(
+        value);
+
+    return result;
+}
+
+
+static void showMessage(
+    HWND owner,
+    const std::wstring&amp; message,
+    const wchar_t* title =
+    L&quot;Aurelia Atelier&quot;) {
+
+    MessageBoxW(
+        owner,
+        message.c_str(),
+        title,
+        MB_OK |
+        MB_ICONINFORMATION);
+}
+
+
+// ============================================================
+// WINDOWS CONTROL FONTS
+// ============================================================
+
+static HFONT createFont(
+    HWND reference,
+    int points,
+    bool bold =
+    false) {
+
+    HDC deviceContext =
+        GetDC(
+            reference);
+
+    const int dpi =
+        GetDeviceCaps(
+            deviceContext,
+            LOGPIXELSY);
+
+    ReleaseDC(
+        reference,
+        deviceContext);
+
+    LOGFONTW fontData = {};
+
+    fontData.lfHeight =
+        -MulDiv(
+            points,
+            dpi,
+            72);
+
+    fontData.lfWeight =
+        bold
+        ? FW_SEMIBOLD
+        : FW_NORMAL;
+
+    wcscpy_s(
+        fontData.lfFaceName,
+        L&quot;Segoe UI&quot;);
+
+    return CreateFontIndirectW(
+        &amp;fontData);
+}
+
+
+static void assignFont(
+    HWND control,
+    int points =
+    10,
+    bool bold =
+    false) {
+
+    HFONT font =
+        createFont(
+            control,
+            points,
+            bold);
+
+    SendMessageW(
+        control,
+        WM_SETFONT,
+        reinterpret_cast&lt;
+        WPARAM&gt;(
+            font),
+        TRUE);
+}
+
+
+// ============================================================
+// DRAWING HELPERS
+// ============================================================
+
+static void drawRoundedBox(
+    Graphics&amp; graphics,
+    REAL x,
+    REAL y,
+    REAL width,
+    REAL height,
+    REAL radius,
+    const Color&amp; fill,
+    const Color&amp; border =
+    Color(
+        0,
+        0,
+        0,
+        0)) {
+
+    GraphicsPath path;
+
+    const REAL diameter =
+        radius *
+        2.0f;
+
+    path.AddArc(
+        x,
+        y,
+        diameter,
+        diameter,
+        180,
+        90);
+
+    path.AddArc(
+        x +
+        width -
+        diameter,
+        y,
+        diameter,
+        diameter,
+        270,
+        90);
+
+    path.AddArc(
+        x +
+        width -
+        diameter,
+        y +
+        height -
+        diameter,
+        diameter,
+        diameter,
+        0,
+        90);
+
+    path.AddArc(
+        x,
+        y +
+        height -
+        diameter,
+        diameter,
+        diameter,
+        90,
+        90);
+
+    path.CloseFigure();
+
+    SolidBrush fillBrush(
+        fill);
+
+    graphics.FillPath(
+        &amp;fillBrush,
+        &amp;path);
+
+    if (
+        border.GetA() &gt;
+        0) {
+
+        Pen borderPen(
+            border,
+            1.0f);
+
+        graphics.DrawPath(
+            &amp;borderPen,
+            &amp;path);
+    }
+}
+
+
+static void drawLabel(
+    Graphics&amp; graphics,
+    const std::wstring&amp; value,
+    REAL x,
+    REAL y,
+    REAL width,
+    REAL height,
+    int size,
+    const Color&amp; color,
+    bool bold =
+    false,
+    StringAlignment alignment =
+    StringAlignmentNear) {
+
+    FontFamily family(
+        L&quot;Segoe UI&quot;);
+
+    Font font(
+        &amp;family,
+        static_cast&lt;REAL&gt;(
+            size),
+        bold
+        ? FontStyleBold
+        : FontStyleRegular,
+        UnitPixel);
+
+    SolidBrush brush(
+        color);
+
+    StringFormat format;
+
+    format.SetAlignment(
+        alignment);
+
+    format.SetLineAlignment(
+        StringAlignmentCenter);
+
+    format.SetTrimming(
+        StringTrimmingEllipsisCharacter);
+
+    graphics.DrawString(
+        value.c_str(),
+        -1,
+        &amp;font,
+        RectF(
+            x,
+            y,
+            width,
+            height),
+        &amp;format,
+        &amp;brush);
+}
+
+
+// Planning panels accept numeric layout values and cast only at the GDI+ boundary
+static void drawPlanningLabel(Graphics&amp; g,const std::wstring&amp; text,double x,double y,double w,double h,int size,const Color&amp; color,bool bold=false,StringAlignment align=StringAlignmentNear) {
+    drawLabel(g,text,static_cast&lt;REAL&gt;(x),static_cast&lt;REAL&gt;(y),static_cast&lt;REAL&gt;(w),static_cast&lt;REAL&gt;(h),size,color,bold,align);
+}
+static void drawPlanningBox(Graphics&amp; g,double x,double y,double w,double h,double radius,const Color&amp; fill,const Color&amp; border) {
+    drawRoundedBox(g,static_cast&lt;REAL&gt;(x),static_cast&lt;REAL&gt;(y),static_cast&lt;REAL&gt;(w),static_cast&lt;REAL&gt;(h),static_cast&lt;REAL&gt;(radius),fill,border);
+}
+
+static void drawTrackedBrand(
+    Graphics&amp; graphics,
+    const std::wstring&amp; text,
+    REAL startX,
+    REAL startY,
+    REAL fontSize,
+    const Color&amp; color,
+    REAL tracking =
+    -1.4f) {
+
+    FontFamily family(
+        L&quot;Georgia&quot;);
+
+    Font font(
+        &amp;family,
+        fontSize,
+        FontStyleBold,
+        UnitPixel);
+
+    SolidBrush brush(
+        color);
+
+    REAL currentX =
+        startX;
+
+    for (
+        wchar_t character :
+    text) {
+
+        wchar_t characterText[
+            2] = {
+
+            character,
+
+            L&#x27;\0&#x27;
+        };
+
+        RectF bounds;
+
+        graphics.MeasureString(
+            characterText,
+            -1,
+            &amp;font,
+            PointF(
+                0.0f,
+                0.0f),
+            &amp;bounds);
+
+        graphics.DrawString(
+            characterText,
+            -1,
+            &amp;font,
+            PointF(
+                currentX,
+                startY),
+            &amp;brush);
+
+        currentX +=
+            bounds.Width +
+            tracking;
+    }
+}
+
+
+static void drawWealthEmblem(
+    Graphics&amp; graphics, REAL x, REAL y, REAL size) {
+    // A true circular border, centered inside the emblem bounds
+    Pen gold(COLOR_GOLD, 2.1f);
+    Pen sage(COLOR_SAGE, 2.0f);
+    Pen clay(COLOR_TERRACOTTA, 1.1f);
+    gold.SetLineJoin(LineJoinRound);
+    sage.SetLineJoin(LineJoinRound);
+    const REAL inset = size * .04f;
+    const REAL diameter = size - 2.0f * inset;
+    graphics.DrawEllipse(&amp;gold, x + inset, y + inset, diameter, diameter);
+    PointF points[] = {
+        PointF(x + size * .19f, y + size * .72f),
+        PointF(x + size * .38f, y + size * .54f),
+        PointF(x + size * .51f, y + size * .60f),
+        PointF(x + size * .78f, y + size * .29f)
+    };
+    graphics.DrawLines(&amp;sage, points, 4);
+    graphics.DrawLine(&amp;gold,
+        x + size * .65f, y + size * .31f,
+        x + size * .78f, y + size * .29f);
+    graphics.DrawLine(&amp;gold,
+        x + size * .78f, y + size * .29f,
+        x + size * .76f, y + size * .44f);
+    graphics.DrawArc(&amp;clay,
+        x + size * .20f, y + size * .17f,
+        size * .57f, size * .63f, 201, 110);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+#include &quot;AureliaForms.h&quot;
+#include &quot;AureliaMarketData.h&quot;
+
+enum class Page {
+
+    Welcome,
+
+    Login,
+
+    Dashboard,
+
+    Clients,
+
+    ClientWorkspace,
+
+    AdvisorTasks,
+
+    FinancialGoals,
+
+    AllocationDetail,
+
+    HistoryDetail,
+
+    Loading,
+
+    Reports,
+
+    Database,
+
+    Audit,
+    ClientDetails,
+    MarketData
+};
+
+
+enum Action {
+
+    ACTION_LOGIN_PAGE =
+    1,
+
+    ACTION_LOGIN,
+
+    ACTION_LOGOUT,
+
+    ACTION_DASHBOARD,
+
+    ACTION_CLIENTS,
+
+    ACTION_REPORTS,
+
+    ACTION_DATABASE,
+
+    ACTION_AUDIT,
+
+    ACTION_OPEN_CLIENT,
+
+    ACTION_BACK_TO_CLIENTS,
+
+    ACTION_REFRESH,
+
+    ACTION_TASKS,
+
+    ACTION_GOALS,
+
+    ACTION_ALLOCATION,
+
+    ACTION_HISTORY,
+
+    ACTION_TASK_COMPLETE,
+
+    ACTION_TASK_CLIENT,
+
+    ACTION_GOAL_CLIENT,
+
+    ACTION_DUPLICATE_REVIEW,
+
+    ACTION_EXPORT_ENTERPRISE_PDF,
+
+    ACTION_EXPORT_ENTERPRISE_XLSX,
+
+    ACTION_EXPORT_CLIENT_PDF,
+
+    ACTION_EXPORT_CLIENT_XLSX,
+    ACTION_CLIENT_DETAILS, ACTION_PROFILE_PORTFOLIO, ACTION_EDIT_PROFILE,
+    ACTION_NEW_TASK, ACTION_EDIT_TASK, ACTION_NEW_GOAL, ACTION_EDIT_GOAL,
+    ACTION_ADD_NOTE, ACTION_ADD_ACCOUNT, ACTION_SET_HOLDING, ACTION_MARKET, ACTION_RECORD_QUOTE, ACTION_REFRESH_QUOTE
+};
+
+
+struct ClickArea {
+
+    RECT rectangle;
+
+    int action;
+};
+
+
+// ============================================================
+// FORWARD DECLARATIONS
+// ============================================================
+
+class AureliaApplication;
+
+
+static LRESULT CALLBACK MainWindowProc(
+    HWND,
+    UINT,
+    WPARAM,
+    LPARAM);
+
+
+// ============================================================
+// MAIN APPLICATION
+// ============================================================
+
+class AureliaApplication {
+public:
+
+    HINSTANCE instance =
+        nullptr;
+
+    HWND window =
+        nullptr;
+
+    HWND usernameField =
+        nullptr;
+
+    HWND passwordField =
+        nullptr;
+
+    HWND searchField =
+        nullptr;
+
+    HWND clientList =
+        nullptr;
+
+    HWND holdingsList =
+        nullptr;
+
+    HWND tasksList = nullptr;
+    HWND mediumTasksList = nullptr, completedTasksList = nullptr;
+    int taskSortColumn = 0, clientSortColumn = 0;
+    bool taskSortAscending = true, clientSortAscending = true;
+    bool isTaskList(HWND h) const { return h &amp;&amp; (h == tasksList || h == mediumTasksList || h == completedTasksList); }
+    int taskRowIndex(HWND h, int row) const {
+        LVITEMW item{}; item.mask = LVIF_PARAM; item.iItem = row;
+        return row &gt;= 0 &amp;&amp; ListView_GetItem(h, &amp;item) ? static_cast&lt;int&gt;(item.lParam) : -1;
+    }
+    void markSort(HWND list, int column, bool ascending) {
+        HWND header = ListView_GetHeader(list);
+        for (int i = 0; i &lt; Header_GetItemCount(header); ++i) {
+            HDITEMW item{}; item.mask = HDI_FORMAT; Header_GetItem(header, i, &amp;item);
+            item.fmt &amp;= ~(HDF_SORTUP | HDF_SORTDOWN);
+            if (i == column) item.fmt |= ascending ? HDF_SORTUP : HDF_SORTDOWN;
+            Header_SetItem(header, i, &amp;item);
+        }
+    }
+    HWND goalsList = nullptr;
+    std::vector&lt;AdvisorTask&gt; displayedTasks;
+    std::vector&lt;FinancialGoal&gt; displayedGoals;
+    Page loadingDestination = Page::Dashboard;
+    int loadingFrame = 0;
+
+
+    Page currentPage =
+        Page::Welcome;
+
+
+    int width =
+        1200;
+
+    int height =
+        780;
+
+    int failedLoginAttempts =
+        0;
+
+    int selectedWorkspaceClientId =
+        -1;
+
+
+    bool authenticated =
+        false;
+
+
+    Database database;
+
+    ClientRepository repository;
+
+    AnalyticsService analytics;
+
+    PdfReportWriter pdfWriter;
+
+    ExcelExporter excelExporter;
+
+    std::future&lt;MarketObservation&gt; marketRefresh;
+    std::wstring marketStatus=L&quot;Public 2026 observations are snapshots, not a connected real-time feed. Inspect the market date before use.&quot;;
+
+    Logger logger;
+
+
+    std::vector&lt;Client&gt;
+        displayedClients;
+
+
+    std::vector&lt;ClickArea&gt;
+        clickAreas;
+
+
+public:
+
+    explicit AureliaApplication(
+        HINSTANCE applicationInstance)
+        :
+        instance(
+            applicationInstance),
+
+        database(
+            &quot;cs499_clients.db&quot;),
+
+        repository(
+            database),
+
+        analytics(
+            repository),
+
+        pdfWriter(
+            repository,
+            analytics),
+
+        excelExporter(
+            repository,
+            analytics),
+
+        logger(
+            &quot;cs499_audit.log&quot;) {
+    }
+
+
+    // ========================================================
+    // WINDOW
+    // ========================================================
+
+    void createMainWindow() {
+
+        WNDCLASSW windowClass = {};
+
+        windowClass.lpfnWndProc =
+            MainWindowProc;
+
+        windowClass.hInstance =
+            instance;
+
+        windowClass.lpszClassName =
+            L&quot;AureliaMainWindow&quot;;
+
+        windowClass.hCursor =
+            LoadCursorW(
+                nullptr,
+                IDC_ARROW);
+
+        windowClass.hbrBackground =
+            reinterpret_cast&lt;
+            HBRUSH&gt;(
+                COLOR_WINDOW +
+                1);
+
+
+        RegisterClassW(
+            &amp;windowClass);
+
+
+        window =
+            CreateWindowExW(
+                0,
+                L&quot;AureliaMainWindow&quot;,
+                L&quot;Aurelia Atelier | Private Wealth Operations&quot;,
+                WS_OVERLAPPEDWINDOW |
+                WS_CLIPCHILDREN,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                1320,
+                860,
+                nullptr,
+                nullptr,
+                instance,
+                this);
+
+
+        if (!window) {
+
+            throw std::runtime_error(
+                &quot;Unable to create &quot;
+                &quot;Aurelia Wealth Studio.&quot;);
+        }
+
+
+        createControls();
+
+
+        ShowWindow(
+            window,
+            SW_SHOW);
+
+
+        UpdateWindow(
+            window);
+
+
+        updateLayout();
+    }
+
+
+    // ========================================================
+    // CONTROLS
+    // ========================================================
+
+    void createControls() {
+
+        usernameField =
+            CreateWindowExW(
+                WS_EX_CLIENTEDGE,
+                L&quot;EDIT&quot;,
+                L&quot;&quot;,
+                WS_CHILD |
+                WS_TABSTOP |
+                ES_AUTOHSCROLL,
+                0,
+                0,
+                320,
+                36,
+                window,
+                reinterpret_cast&lt;
+                HMENU&gt;(
+                    1001),
+                instance,
+                nullptr);
+
+
+        passwordField =
+            CreateWindowExW(
+                WS_EX_CLIENTEDGE,
+                L&quot;EDIT&quot;,
+                L&quot;&quot;,
+                WS_CHILD |
+                WS_TABSTOP |
+                ES_PASSWORD |
+                ES_AUTOHSCROLL,
+                0,
+                0,
+                320,
+                36,
+                window,
+                reinterpret_cast&lt;
+                HMENU&gt;(
+                    1002),
+                instance,
+                nullptr);
+
+
+        searchField =
+            CreateWindowExW(
+                WS_EX_CLIENTEDGE,
+                L&quot;EDIT&quot;,
+                L&quot;&quot;,
+                WS_CHILD |
+                WS_TABSTOP |
+                ES_AUTOHSCROLL,
+                0,
+                0,
+                360,
+                36,
+                window,
+                reinterpret_cast&lt;
+                HMENU&gt;(
+                    1003),
+                instance,
+                nullptr);
+
+
+        clientList =
+            CreateWindowExW(
+                WS_EX_CLIENTEDGE,
+                WC_LISTVIEWW,
+                L&quot;&quot;,
+                WS_CHILD |
+                WS_TABSTOP |
+                LVS_REPORT |
+                LVS_SINGLESEL |
+                LVS_SHOWSELALWAYS,
+                0,
+                0,
+                900,
+                420,
+                window,
+                reinterpret_cast&lt;
+                HMENU&gt;(
+                    1004),
+                instance,
+                nullptr);
+
+
+        holdingsList =
+            CreateWindowExW(
+                WS_EX_CLIENTEDGE,
+                WC_LISTVIEWW,
+                L&quot;&quot;,
+                WS_CHILD |
+                WS_TABSTOP |
+                LVS_REPORT |
+                LVS_SINGLESEL |
+                LVS_SHOWSELALWAYS,
+                0,
+                0,
+                900,
+                260,
+                window,
+                reinterpret_cast&lt;
+                HMENU&gt;(
+                    1005),
+                instance,
+                nullptr);
+
+
+        tasksList = CreateWindowExW(
+            WS_EX_CLIENTEDGE, WC_LISTVIEWW, L&quot;&quot;,
+            WS_CHILD | WS_TABSTOP | LVS_REPORT |
+            LVS_SINGLESEL | LVS_SHOWSELALWAYS,
+            0, 0, 920, 400, window,
+            reinterpret_cast&lt;HMENU&gt;(1006), instance, nullptr);
+
+        mediumTasksList = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, L&quot;&quot;, WS_CHILD | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS, 0, 0, 300, 400, window, reinterpret_cast&lt;HMENU&gt;(1008), instance, nullptr);
+        completedTasksList = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, L&quot;&quot;, WS_CHILD | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS, 0, 0, 300, 400, window, reinterpret_cast&lt;HMENU&gt;(1009), instance, nullptr);
+        for (HWND lane : { mediumTasksList, completedTasksList }) ListView_SetExtendedListViewStyle(lane, LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_GRIDLINES | LVS_EX_INFOTIP);
+        goalsList = CreateWindowExW(
+            WS_EX_CLIENTEDGE, WC_LISTVIEWW, L&quot;&quot;,
+            WS_CHILD | WS_TABSTOP | LVS_REPORT |
+            LVS_SINGLESEL | LVS_SHOWSELALWAYS,
+            0, 0, 920, 400, window,
+            reinterpret_cast&lt;HMENU&gt;(1007), instance, nullptr);
+
+        ListView_SetExtendedListViewStyle(
+            tasksList, LVS_EX_FULLROWSELECT |
+            LVS_EX_DOUBLEBUFFER | LVS_EX_GRIDLINES | LVS_EX_INFOTIP);
+        ListView_SetExtendedListViewStyle(
+            goalsList, LVS_EX_FULLROWSELECT |
+            LVS_EX_DOUBLEBUFFER | LVS_EX_GRIDLINES | LVS_EX_INFOTIP);
+
+        const wchar_t* taskNames[] = {
+            L&quot;TICKET&quot;, L&quot;CLIENT&quot;, L&quot;ACTION&quot;, L&quot;PRIORITY&quot;, L&quot;STATUS&quot;, L&quot;DUE&quot;, L&quot;ASSIGNED TO&quot;, L&quot;CATEGORY&quot; };
+        const int taskWidths[] = { 65,120,260,88,95,100,130,105 };
+        for (int i = 0; i &lt; 8; ++i) {
+            LVCOLUMNW column = {};
+            column.mask = LVCF_TEXT | LVCF_WIDTH;
+            column.pszText = const_cast&lt;LPWSTR&gt;(taskNames[i]);
+            column.cx = taskWidths[i];
+            for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) ListView_InsertColumn(lane, i, &amp;column);
+        }
+
+        const wchar_t* goalNames[] = {
+            L&quot;CLIENT ID&quot;, L&quot;CLIENT&quot;, L&quot;GOAL&quot;, L&quot;TARGET&quot;, L&quot;CURRENT&quot;, L&quot;FUNDED&quot;, L&quot;TARGET DATE&quot; };
+        const int goalWidths[] = { 85,150,235,130,130,95,130 };
+        for (int i = 0; i &lt; 7; ++i) {
+            LVCOLUMNW column = {};
+            column.mask = LVCF_TEXT | LVCF_WIDTH;
+            column.pszText = const_cast&lt;LPWSTR&gt;(goalNames[i]);
+            column.cx = goalWidths[i];
+            ListView_InsertColumn(goalsList, i, &amp;column);
+        }
+
+        ListView_SetExtendedListViewStyle(
+            clientList,
+
+            LVS_EX_FULLROWSELECT |
+            LVS_EX_DOUBLEBUFFER |
+            LVS_EX_GRIDLINES);
+
+
+        ListView_SetExtendedListViewStyle(
+            holdingsList,
+
+            LVS_EX_FULLROWSELECT |
+            LVS_EX_DOUBLEBUFFER |
+            LVS_EX_GRIDLINES);
+
+
+        const wchar_t*
+            clientColumns[] = {
+
+            L&quot;ID&quot;,
+
+            L&quot;CLIENT&quot;,
+
+            L&quot;HOUSEHOLD&quot;,
+
+            L&quot;ADVISOR&quot;,
+
+            L&quot;RISK&quot;,
+
+            L&quot;PORTFOLIO VALUE&quot;,
+
+            L&quot;STATUS&quot;
+        };
+
+
+        const int clientWidths[] = {
+
+            55,
+
+            175,
+
+            175,
+
+            145,
+
+            110,
+
+            130,
+
+            85
+        };
+
+
+        for (
+            int index = 0;
+            index &lt;
+            7;
+            ++index) {
+
+            LVCOLUMNW column = {};
+
+            column.mask =
+                LVCF_TEXT |
+                LVCF_WIDTH;
+
+            column.pszText =
+                const_cast&lt;
+                LPWSTR&gt;(
+                    clientColumns[
+                        index]);
+
+            column.cx =
+                clientWidths[
+                    index];
+
+            ListView_InsertColumn(
+                clientList,
+                index,
+                &amp;column);
+        }
+
+
+        const wchar_t*
+            holdingColumns[] = {
+
+            L&quot;SYMBOL&quot;,
+
+            L&quot;SECURITY&quot;,
+
+            L&quot;ASSET CLASS&quot;,
+
+            L&quot;QTY&quot;,
+
+            L&quot;VALUE&quot;,
+
+            L&quot;GAIN / LOSS&quot;,
+
+            L&quot;WEIGHT&quot;
+        };
+
+
+        const int holdingWidths[] = {
+
+            80,
+
+            225,
+
+            135,
+
+            90,
+
+            130,
+
+            120,
+
+            90
+        };
+
+
+        for (
+            int index = 0;
+            index &lt;
+            7;
+            ++index) {
+
+            LVCOLUMNW column = {};
+
+            column.mask =
+                LVCF_TEXT |
+                LVCF_WIDTH;
+
+            column.pszText =
+                const_cast&lt;
+                LPWSTR&gt;(
+                    holdingColumns[
+                        index]);
+
+            column.cx =
+                holdingWidths[
+                    index];
+
+            ListView_InsertColumn(
+                holdingsList,
+                index,
+                &amp;column);
+        }
+
+
+        assignFont(
+            usernameField,
+            11);
+
+        assignFont(
+            passwordField,
+            11);
+
+        assignFont(
+            searchField,
+            11);
+
+        assignFont(
+            clientList,
+            10);
+
+        assignFont(
+            holdingsList,
+            10);
+        for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) assignFont(lane, 10);
+        assignFont(goalsList, 10);
+    }
+
+
+    // ========================================================
+    // LAYOUT
+    // ========================================================
+
+    void updateLayout() {
+
+        if (!window) {
+
+            return;
+        }
+
+
+        RECT clientRectangle = {};
+
+
+        GetClientRect(
+            window,
+            &amp;clientRectangle);
+
+
+        width =
+            clientRectangle.right;
+
+
+        height =
+            clientRectangle.bottom;
+
+
+        ShowWindow(
+            usernameField,
+            SW_HIDE);
+
+
+        ShowWindow(
+            passwordField,
+            SW_HIDE);
+
+
+        ShowWindow(
+            searchField,
+            SW_HIDE);
+
+
+        ShowWindow(
+            clientList,
+            SW_HIDE);
+
+
+        ShowWindow(
+            holdingsList,
+            SW_HIDE);
+        for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) ShowWindow(lane, SW_HIDE);
+        ShowWindow(goalsList, SW_HIDE);
+
+
+        if (
+            currentPage ==
+            Page::Login) {
+
+            const int centerX =
+                width /
+                2;
+
+
+            MoveWindow(
+                usernameField,
+                centerX -
+                165,
+                height /
+                2 -
+                33,
+                330,
+                35,
+                TRUE);
+
+
+            MoveWindow(
+                passwordField,
+                centerX -
+                165,
+                height /
+                2 +
+                35,
+                330,
+                35,
+                TRUE);
+
+
+            ShowWindow(
+                usernameField,
+                SW_SHOW);
+
+
+            ShowWindow(
+                passwordField,
+                SW_SHOW);
+        }
+
+
+        if (
+            currentPage ==
+            Page::Clients) {
+
+            MoveWindow(
+                searchField,
+                252,
+                150,
+                380,
+                35,
+                TRUE);
+
+
+            MoveWindow(
+                clientList,
+                252,
+                205,
+                std::max(
+                    600,
+                    width -
+                    285),
+                std::max(
+                    280,
+                    height -
+                    300),
+                TRUE);
+
+
+            ShowWindow(
+                searchField,
+                SW_SHOW);
+
+
+            ShowWindow(
+                clientList,
+                SW_SHOW);
+
+
+            refreshClientList();
+        }
+
+
+        if (
+            currentPage ==
+            Page::ClientWorkspace) {
+
+            MoveWindow(
+                holdingsList,
+                252,
+                585,
+                std::max(
+                    650,
+                    width -
+                    285),
+                std::max(
+                    130,
+                    height -
+                    670),
+                TRUE);
+
+
+            ShowWindow(
+                holdingsList,
+                SW_SHOW);
+
+
+            refreshHoldingsList();
+        }
+
+
+        if (currentPage == Page::AdvisorTasks) {
+            int laneWidth = std::max(200, (width - 309) / 3), laneIndex = 0;
+            for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) {
+                MoveWindow(lane, 252 + laneIndex++ * (laneWidth + 12), 207, laneWidth, std::max(238, height - 322), TRUE);
+                ShowWindow(lane, SW_SHOW);
+            }
+            refreshTasksList();
+        }
+
+        if (currentPage == Page::FinancialGoals) {
+            MoveWindow(goalsList, 252, 185,
+                std::max(600, width - 285),
+                std::max(260, height - 300), TRUE);
+            ShowWindow(goalsList, SW_SHOW);
+            refreshGoalsList();
+        }
+
+        InvalidateRect(window, nullptr, TRUE);
+    }
+
+    void navigate(Page requested) {
+        const bool animate = authenticated &amp;&amp;
+            requested != currentPage &amp;&amp;
+            requested != Page::Welcome &amp;&amp;
+            requested != Page::Login &amp;&amp;
+            requested != Page::Loading;
+        if (animate) {
+            loadingDestination = requested;
+            loadingFrame = 0;
+            currentPage = Page::Loading;
+            SetTimer(window, 27, 85, nullptr);
+        }
+        else {
+            currentPage = requested;
+        }
+        updateLayout();
+    }
+
+
+    // ========================================================
+    // LOGIN
+    // ========================================================
+
+    void login() {
+
+        const std::wstring username =
+            controlText(
+                usernameField);
+
+
+        const std::wstring password =
+            controlText(
+                passwordField);
+
+
+        const std::wstring
+            configuredUsername =
+            environmentValue(
+                L&quot;CS499_USERNAME&quot;);
+
+
+        const std::wstring
+            configuredPassword =
+            environmentValue(
+                L&quot;CS499_PASSWORD&quot;);
+
+
+        if (
+            configuredUsername.empty() ||
+            configuredPassword.empty()) {
+
+            showMessage(
+                window,
+
+                L&quot;Authentication is not configured.\n\n&quot;
+                L&quot;Project Properties &gt; Debugging &gt; Environment\n\n&quot;
+                L&quot;CS499_USERNAME=demo_admin\n&quot;
+                L&quot;CS499_PASSWORD=AureliaDemo2026&quot;);
+
+            return;
+        }
+
+
+        if (
+            username !=
+            configuredUsername ||
+            password !=
+            configuredPassword) {
+
+            failedLoginAttempts++;
+
+
+            logger.write(
+                &quot;GUI_AUTH_FAILURE&quot;);
+
+
+            showMessage(
+                window,
+                L&quot;Username or password &quot;
+                L&quot;was not recognized.&quot;);
+
+
+            if (
+                failedLoginAttempts &gt;=
+                3) {
+
+                EnableWindow(
+                    usernameField,
+                    FALSE);
+
+                EnableWindow(
+                    passwordField,
+                    FALSE);
+            }
+
+
+            return;
+        }
+
+
+        authenticated =
+            true;
+
+
+        failedLoginAttempts =
+            0;
+
+
+        SetWindowTextW(
+            passwordField,
+            L&quot;&quot;);
+
+
+        logger.write(
+            &quot;GUI_AUTH_SUCCESS&quot;);
+
+
+        navigate(
+            Page::Dashboard);
+    }
+
+
+    std::vector&lt;std::string&gt; clientChoices() {
+        std::vector&lt;std::string&gt; out;for(const auto&amp; c:repository.getAllClients())out.push_back(std::to_string(c.id)+&quot; | &quot;+c.name);return out;
+    }
+    std::string chosenClientLabel() {
+        auto c=repository.findClientById(selectedWorkspaceClientId);if(c)return std::to_string(c-&gt;id)+&quot; | &quot;+c-&gt;name;auto list=clientChoices();return list.empty()?&quot;&quot;:list.front();
+    }
+    void editClientProfile() {
+        auto found=repository.findClientById(selectedWorkspaceClientId);if(!found)throw std::runtime_error(&quot;Open a client workspace first.&quot;);Client c=*found;PlanningProfile p=repository.getPlanningProfile(c.id);
+        std::vector&lt;AureliaFormField&gt; f={
+            {L&quot;Client name&quot;,c.name},{L&quot;Email&quot;,c.email},{L&quot;Phone&quot;,c.phone},{L&quot;Age&quot;,std::to_string(c.age)},
+            {L&quot;Household&quot;,c.householdName},{L&quot;Assigned advisor&quot;,c.advisorName},{L&quot;Objective&quot;,c.investmentObjective},
+            {L&quot;Annual income (USD)&quot;,formNumber(c.annualIncome)},{L&quot;Net worth (USD)&quot;,formNumber(c.netWorth)},
+            {L&quot;Liquidity need&quot;,c.liquidityNeed,{&quot;Low&quot;,&quot;Moderate&quot;,&quot;High&quot;}},{L&quot;Time horizon (years)&quot;,std::to_string(c.timeHorizonYears)},
+            {L&quot;Risk profile&quot;,riskLevelToString(c.riskLevel),{&quot;Conservative&quot;,&quot;Moderate&quot;,&quot;Aggressive&quot;}},
+            {L&quot;Occupation&quot;,p.occupation},{L&quot;Employer / business&quot;,p.employer},{L&quot;Location&quot;,p.location},
+            {L&quot;Preferred contact&quot;,p.contactPreference,{&quot;Email&quot;,&quot;Phone&quot;,&quot;Video meeting&quot;}},{L&quot;Dependents&quot;,std::to_string(p.dependents)},
+            {L&quot;Retirement age&quot;,std::to_string(p.retirementAge)},{L&quot;Annual expenses (USD)&quot;,formNumber(p.annualExpenses)},
+            {L&quot;Emergency reserve (USD)&quot;,formNumber(p.emergencyReserve)},{L&quot;Monthly savings (USD)&quot;,formNumber(p.monthlySaving)},
+            {L&quot;Next review (YYYY-MM-DD)&quot;,p.reviewDate},{L&quot;Planning context&quot;,p.planningContext,{},true}};
+        runAureliaForm(window,L&quot;Client profile and planning&quot;,f,[&amp;](const std::vector&lt;std::string&gt;&amp; v){
+            c.name=v[0];c.email=v[1];c.phone=v[2];c.age=formInteger(v[3]);c.householdName=v[4];c.advisorName=v[5];c.investmentObjective=v[6];c.annualIncome=formAmount(v[7]);c.netWorth=formAmount(v[8]);c.liquidityNeed=v[9];c.timeHorizonYears=formInteger(v[10]);c.riskLevel=v[11]==&quot;Conservative&quot;?RiskLevel::Conservative:(v[11]==&quot;Moderate&quot;?RiskLevel::Moderate:RiskLevel::Aggressive);p.occupation=v[12];p.employer=v[13];p.location=v[14];p.contactPreference=v[15];p.dependents=formInteger(v[16]);p.retirementAge=formInteger(v[17]);p.annualExpenses=formAmount(v[18]);p.emergencyReserve=formAmount(v[19]);p.monthlySaving=formAmount(v[20]);p.reviewDate=v[21];p.planningContext=v[22];repository.savePlanningProfile(c,p);});updateLayout();
+    }
+    void editTicket(bool edit) {
+        AdvisorTask t;auto choices=clientChoices();std::string label=chosenClientLabel();
+        if(edit){int i=selectedTaskIndex();if(i&lt;0||i&gt;=(int)displayedTasks.size())throw std::runtime_error(&quot;Select a ticket first.&quot;);t=displayedTasks[i];if(t.clientId){auto c=repository.findClientById(*t.clientId);if(c)label=std::to_string(c-&gt;id)+&quot; | &quot;+c-&gt;name;}}
+        std::vector&lt;AureliaFormField&gt; f={{L&quot;Client&quot;,label,choices},{L&quot;Ticket title&quot;,t.title},{L&quot;Action / expected outcome&quot;,t.description,{},true},
+            {L&quot;Category&quot;,t.category.empty()?&quot;Planning&quot;:t.category,{&quot;Planning&quot;,&quot;Portfolio review&quot;,&quot;Client service&quot;,&quot;Documentation&quot;,&quot;Cash flow&quot;,&quot;Goal review&quot;}},
+            {L&quot;Due date (YYYY-MM-DD)&quot;,t.dueDate},{L&quot;Priority&quot;,t.priority.empty()?&quot;Medium&quot;:t.priority,{&quot;Urgent&quot;,&quot;High&quot;,&quot;Medium&quot;,&quot;Low&quot;}},
+            {L&quot;Assigned advisor&quot;,t.assignedTo.empty()?&quot;Brianna Reed&quot;:t.assignedTo},{L&quot;Status&quot;,t.status,{&quot;Open&quot;,&quot;In progress&quot;,&quot;Waiting&quot;,&quot;Completed&quot;}}};
+        runAureliaForm(window,edit?L&quot;Update advisor ticket&quot;:L&quot;Create advisor ticket&quot;,f,[&amp;](const std::vector&lt;std::string&gt;&amp; v){repository.saveTask(t.id,std::stoi(v[0]),v[1],v[2],v[3],v[4],v[5],v[6],v[7]);});updateLayout();
+    }
+    void editFinancialGoal(bool edit) {
+        FinancialGoal g;std::string label=chosenClientLabel();if(edit){int i=selectedGoalIndex();if(i&lt;0||i&gt;=(int)displayedGoals.size())throw std::runtime_error(&quot;Select a goal first.&quot;);g=displayedGoals[i];auto c=repository.findClientById(g.clientId);if(c)label=std::to_string(c-&gt;id)+&quot; | &quot;+c-&gt;name;}
+        std::vector&lt;AureliaFormField&gt; f={{L&quot;Client&quot;,label,clientChoices()},{L&quot;Goal name&quot;,g.name},{L&quot;Goal type&quot;,g.type.empty()?&quot;Retirement&quot;:g.type,{&quot;Retirement&quot;,&quot;Emergency reserve&quot;,&quot;Education&quot;,&quot;Home purchase&quot;,&quot;Lifestyle&quot;,&quot;Legacy&quot;,&quot;Other&quot;}},
+            {L&quot;Target amount (USD)&quot;,formNumber(g.targetAmount)},{L&quot;Current funding (USD)&quot;,formNumber(g.currentAmount)},{L&quot;Target date (YYYY-MM-DD)&quot;,g.targetDate},{L&quot;Priority&quot;,g.priority==1?&quot;High&quot;:(g.priority==3?&quot;Low&quot;:&quot;Medium&quot;),{&quot;High&quot;,&quot;Medium&quot;,&quot;Low&quot;}}};
+        runAureliaForm(window,edit?L&quot;Update financial goal&quot;:L&quot;Create financial goal&quot;,f,[&amp;](const std::vector&lt;std::string&gt;&amp; v){repository.saveGoal(g.id,std::stoi(v[0]),v[1],v[2],formAmount(v[3]),formAmount(v[4]),v[5],v[6]==&quot;High&quot;?1:(v[6]==&quot;Low&quot;?3:2));});updateLayout();
+    }
+    void addAdvisorNote() {
+        runAureliaForm(window,L&quot;Add client planning note&quot;,{{L&quot;Client&quot;,chosenClientLabel(),clientChoices()},{L&quot;Meeting / next steps / context&quot;,&quot;&quot;,{},true}},[&amp;](const std::vector&lt;std::string&gt;&amp; v){repository.addPlanningNote(std::stoi(v[0]),v[1]);});updateLayout();
+    }
+    void addAccount() {
+        runAureliaForm(window,L&quot;Create demonstration account&quot;,{{L&quot;Client&quot;,chosenClientLabel(),clientChoices()},{L&quot;Account name&quot;,&quot;&quot;},{L&quot;Account type&quot;,&quot;Individual brokerage&quot;,{&quot;Individual brokerage&quot;,&quot;Joint brokerage&quot;,&quot;Traditional IRA&quot;,&quot;Roth IRA&quot;,&quot;Education account&quot;}},{L&quot;Tax treatment&quot;,&quot;Taxable&quot;,{&quot;Taxable&quot;,&quot;Tax deferred&quot;,&quot;Tax exempt&quot;}}},[&amp;](const std::vector&lt;std::string&gt;&amp; v){repository.addClientAccount(std::stoi(v[0]),v[1],v[2],v[3]);});updateLayout();
+    }
+    void recordHolding() {
+        if(selectedWorkspaceClientId&lt;0)throw std::runtime_error(&quot;Open a client workspace first.&quot;);std::vector&lt;std::string&gt; accounts,symbols;for(const auto&amp; a:repository.getAccountsForClient(selectedWorkspaceClientId))accounts.push_back(std::to_string(a.id)+&quot; | &quot;+a.accountName);Statement q(database.handle(),&quot;SELECT symbol FROM securities ORDER BY symbol;&quot;);while(q.step()==SQLITE_ROW)symbols.push_back(q.columnText(0));if(accounts.empty())throw std::runtime_error(&quot;Create an account first.&quot;);
+        runAureliaForm(window,L&quot;Set stored holding position&quot;,{{L&quot;Client account&quot;,accounts.front(),accounts},{L&quot;Security&quot;,symbols.front(),symbols},{L&quot;Total position quantity&quot;,&quot;0&quot;},{L&quot;Average cost per share (USD)&quot;,&quot;0&quot;}},[&amp;](const std::vector&lt;std::string&gt;&amp; v){repository.saveAccountHolding(selectedWorkspaceClientId,std::stoi(v[0]),v[1],formAmount(v[2]),formAmount(v[3]));});updateLayout();
+    }
+    void paintClientDetails(Graphics&amp; graphics,int x,int w) {
+        if(selectedWorkspaceClientId&lt;0)return;auto d=analytics.clientDashboard(selectedWorkspaceClientId);auto p=repository.getPlanningProfile(selectedWorkspaceClientId);int cw=(w-36)/4;
+        drawPlanningLabel(graphics,widen(d.client.name+&quot; / &quot;+d.client.householdName),x,110,w,35,23,COLOR_TEXT,true);
+        drawMetricCard(graphics,x,155,cw,L&quot;ANNUAL INCOME&quot;,moneyText(d.client.annualIncome),L&quot;Recorded household income&quot;);
+        drawMetricCard(graphics,x+cw+12,155,cw,L&quot;NET WORTH&quot;,moneyText(d.client.netWorth),L&quot;Recorded assets less liabilities&quot;);
+        double months=p.annualExpenses&gt;0?p.emergencyReserve/(p.annualExpenses/12):0;
+        drawMetricCard(graphics,x+2*(cw+12),155,cw,L&quot;CASH RUNWAY&quot;,widen(formNumber(months)+&quot; months&quot;),L&quot;Reserve / monthly expenses&quot;);
+        drawMetricCard(graphics,x+3*(cw+12),155,cw,L&quot;MONTHLY SAVING&quot;,moneyText(p.monthlySaving),L&quot;Recorded contribution capacity&quot;);
+        int half=(w-16)/2;drawPlanningBox(graphics,x,285,half,198,14,COLOR_WHITE,COLOR_LINE);drawPlanningBox(graphics,x+half+16,285,half,198,14,COLOR_WHITE,COLOR_LINE);
+        drawPlanningLabel(graphics,L&quot;Relationship essentials&quot;,x+20,296,half-40,30,18,COLOR_TEXT,true);
+        std::vector&lt;std::string&gt; lines={d.client.email+&quot; | &quot;+d.client.phone,p.occupation+&quot; | &quot;+p.employer,p.location+&quot; | Contact: &quot;+p.contactPreference,&quot;Advisor: &quot;+d.client.advisorName+&quot; | Next review: &quot;+p.reviewDate,&quot;Age &quot;+std::to_string(d.client.age)+&quot; | Dependents &quot;+std::to_string(p.dependents)+&quot; | Retirement age &quot;+std::to_string(p.retirementAge)};
+        for(size_t i=0;i&lt;lines.size();++i)drawPlanningLabel(graphics,widen(lines[i]),x+20,333+static_cast&lt;int&gt;(i)*26,half-40,25,11,COLOR_MUTED);
+        drawPlanningLabel(graphics,L&quot;Goal funding&quot;,x+half+36,296,half-40,30,18,COLOR_TEXT,true);int gy=337;
+        for(size_t i=0;i&lt;d.goals.size()&amp;&amp;i&lt;3;++i){auto g=d.goals[i];double pct=g.targetAmount&gt;0?g.currentAmount/g.targetAmount:0;drawPlanningLabel(graphics,widen(g.name+&quot; / &quot;+formNumber(pct*100)+&quot;%&quot;),x+half+36,gy,half-40,22,11,COLOR_TEXT,true);drawPlanningBox(graphics,x+half+36,gy+24,half-40,7,3,COLOR_LINE,Color(0,0,0,0));if(pct&gt;0)drawPlanningBox(graphics,x+half+36,gy+24,(half-40)*std::min(pct,1.0),7,3,COLOR_SAGE,Color(0,0,0,0));gy+=43;}
+        drawPlanningBox(graphics,x,500,w,185,14,COLOR_SOFT_GOLD,COLOR_LINE);drawPlanningLabel(graphics,L&quot;Planning context &amp; practical next steps&quot;,x+20,511,w-40,29,18,COLOR_TEXT,true);
+        drawPlanningLabel(graphics,widen(d.client.investmentObjective+&quot; | &quot;+p.planningContext),x+20,548,w-40,30,12,COLOR_MUTED);
+        int ty=585;for(size_t i=0;i&lt;d.tasks.size()&amp;&amp;i&lt;3;++i){const auto&amp; t=d.tasks[i];drawPlanningLabel(graphics,widen(&quot;AW-&quot;+std::to_string(t.id)+&quot;  [&quot;+t.priority+&quot;] &quot;+t.title+&quot; | &quot;+t.assignedTo+&quot; | Due &quot;+t.dueDate),x+20,ty,w-40,25,11,t.priority==&quot;High&quot;||t.priority==&quot;Urgent&quot;?COLOR_TERRACOTTA:COLOR_TEXT);ty+=27;}
+        drawButton(graphics,L&quot;Portfolio&quot;,x,height-80,110,38,ACTION_PROFILE_PORTFOLIO,false);drawButton(graphics,L&quot;Edit profile&quot;,x+121,height-80,115,38,ACTION_EDIT_PROFILE,true);drawButton(graphics,L&quot;New ticket&quot;,x+247,height-80,110,38,ACTION_NEW_TASK,false);drawButton(graphics,L&quot;New goal&quot;,x+368,height-80,105,38,ACTION_NEW_GOAL,false);drawButton(graphics,L&quot;Add note&quot;,x+484,height-80,100,38,ACTION_ADD_NOTE,false);drawButton(graphics,L&quot;Add account&quot;,x+595,height-80,125,38,ACTION_ADD_ACCOUNT,false);drawButton(graphics,L&quot;Set holding&quot;,x+731,height-80,110,38,ACTION_SET_HOLDING,false);
+    }
+
+    void enterMarketObservation() {
+        std::vector&lt;std::string&gt; symbols;Statement q(database.handle(),&quot;SELECT symbol FROM securities WHERE symbol&lt;&gt;&#x27;CASH&#x27; ORDER BY symbol;&quot;);while(q.step()==SQLITE_ROW)symbols.push_back(q.columnText(0));
+        runAureliaForm(window,L&quot;Record a sourced market observation&quot;,{{L&quot;Security&quot;,symbols.front(),symbols},{L&quot;Observed market price (USD)&quot;,&quot;&quot;},{L&quot;Source date (YYYY-MM-DD)&quot;,&quot;&quot;},{L&quot;HTTPS source URL&quot;,&quot;https://&quot;}},[&amp;](const std::vector&lt;std::string&gt;&amp; v){repository.storeMarketObservation(v[0],formAmount(v[1]),v[2],v[3]);});updateLayout();
+    }
+    void refreshMarketObservation() {
+        if(marketRefresh.valid()){marketStatus=L&quot;A market request is already running.&quot;;return;}
+        std::string key=narrow(environmentValue(L&quot;ALPHAVANTAGE_API_KEY&quot;));if(key.empty()){marketStatus=L&quot;Offline: set ALPHAVANTAGE_API_KEY locally to connect a provider. Dated public observations remain available.&quot;;InvalidateRect(window,nullptr,TRUE);return;}
+        std::vector&lt;std::string&gt; symbols;Statement q(database.handle(),&quot;SELECT symbol FROM securities WHERE symbol&lt;&gt;&#x27;CASH&#x27; ORDER BY symbol;&quot;);while(q.step()==SQLITE_ROW)symbols.push_back(q.columnText(0));std::string selected;
+        bool accepted=runAureliaForm(window,L&quot;Refresh one market observation&quot;,{{L&quot;Security to refresh&quot;,symbols.front(),symbols}},[&amp;](const std::vector&lt;std::string&gt;&amp; v){selected=v[0];});if(!accepted)return;
+        marketStatus=L&quot;Contacting market provider... portfolio records remain available.&quot;;marketRefresh=std::async(std::launch::async,[selected,key]{return fetchMarketObservation(selected,key);});SetTimer(window,28,200,nullptr);InvalidateRect(window,nullptr,TRUE);
+    }
+    void pollMarketObservation() {
+        if(!marketRefresh.valid()||marketRefresh.wait_for(std::chrono::milliseconds(0))!=std::future_status::ready)return;KillTimer(window,28);
+        try{auto o=marketRefresh.get();repository.storeMarketObservation(o.symbol,o.price,o.asOfDate,o.source);marketStatus=widen(o.symbol+&quot; observation refreshed. Provider market date: &quot;+o.asOfDate+&quot;. Not a real-time price guarantee.&quot;);}catch(const std::exception&amp; e){marketStatus=widen(e.what());}InvalidateRect(window,nullptr,TRUE);
+    }
+    void paintMarketData(Graphics&amp; graphics,int x,int w) {
+        drawPlanningLabel(graphics,L&quot;Dated source observations / demonstration valuations stay separate&quot;,x,117,w,32,17,COLOR_TEXT,true);
+        drawPlanningBox(graphics,x,165,w,110,14,COLOR_SOFT_GOLD,COLOR_LINE);
+        drawPlanningLabel(graphics,marketStatus,x+20,177,w-40,38,12,COLOR_MUTED);
+        drawPlanningLabel(graphics,L&quot;Dashboard totals use stored fictional prices. Source observations are reference data with an explicit market date.&quot;,x+20,222,w-40,32,11,COLOR_MUTED);
+        drawPlanningBox(graphics,x,292,w,390,14,COLOR_WHITE,COLOR_LINE);
+        drawPlanningLabel(graphics,L&quot;SECURITY&quot;,x+18,305,110,30,10,COLOR_TEXT,true);drawPlanningLabel(graphics,L&quot;DEMO PRICE&quot;,x+138,305,125,30,10,COLOR_TEXT,true);drawPlanningLabel(graphics,L&quot;SOURCED PRICE&quot;,x+277,305,130,30,10,COLOR_TEXT,true);drawPlanningLabel(graphics,L&quot;MARKET DATE&quot;,x+420,305,125,30,10,COLOR_TEXT,true);drawPlanningLabel(graphics,L&quot;SOURCE / COVERAGE&quot;,x+558,305,w-577,30,10,COLOR_TEXT,true);
+        Statement q(database.handle(),&quot;SELECT s.symbol,s.mock_price,q.price,q.as_of_date,q.source FROM securities s LEFT JOIN market_quotes q ON q.symbol=s.symbol ORDER BY s.symbol;&quot;);int y=342;while(q.step()==SQLITE_ROW){drawPlanningLabel(graphics,widen(q.columnText(0)),x+18,y,110,26,12,COLOR_TEXT,true);drawPlanningLabel(graphics,widen(&quot;$&quot;+formNumber(q.columnDouble(1))),x+138,y,125,26,12,COLOR_MUTED);drawPlanningLabel(graphics,q.columnIsNull(2)?L&quot;Not sourced&quot;:widen(&quot;$&quot;+formNumber(q.columnDouble(2))),x+277,y,130,26,12,COLOR_TEXT);drawPlanningLabel(graphics,widen(q.columnText(3)),x+420,y,125,26,11,COLOR_MUTED);drawPlanningLabel(graphics,q.columnIsNull(2)?L&quot;Offline demonstration price only&quot;:widen(q.columnText(4)),x+558,y,w-577,26,10,COLOR_MUTED);y+=31;}
+        drawButton(graphics,L&quot;Record observation&quot;,x,height-80,175,39,ACTION_RECORD_QUOTE,true);drawButton(graphics,L&quot;Refresh from provider&quot;,x+188,height-80,200,39,ACTION_REFRESH_QUOTE,false);drawButton(graphics,L&quot;Back to dashboard&quot;,x+401,height-80,180,39,ACTION_DASHBOARD,false);
+    }
+
+    // The dashboard metrics and panels navigate to their underlying records
+    void paintOperationalRegister(Graphics&amp; graphics,
+        int x, int w, bool taskPage) {
+        drawLabel(graphics,
+            taskPage ? L&quot;Click headers to sort | Scroll across for all fields | Hover for full ticket details&quot;
+            : L&quot;Stored financial goals | Select a row for client context&quot;,
+            x, 121, w, 40, 13, COLOR_MUTED);
+        drawButton(graphics, taskPage?L&quot;Create ticket&quot;:L&quot;Create goal&quot;,x+w-145,121,145,37,taskPage?ACTION_NEW_TASK:ACTION_NEW_GOAL,true);
+        if (taskPage) {
+            int laneWidth = std::max(200, (width - 309) / 3);
+            const wchar_t* names[] = { L&quot;HIGH / URGENT&quot;, L&quot;MEDIUM / LOW&quot;, L&quot;COMPLETED&quot; };
+            HWND lanes[] = { tasksList, mediumTasksList, completedTasksList };
+            for (int i = 0; i &lt; 3; ++i) drawPlanningLabel(graphics, std::wstring(names[i]) + L&quot;  (&quot; + std::to_wstring(ListView_GetItemCount(lanes[i])) + L&quot;)&quot;, 252 + i * (laneWidth + 12), 175, laneWidth, 26, 11, COLOR_TEXT, true);
+            int selected = selectedTaskIndex();
+            if (selected &gt;= 0 &amp;&amp; selected &lt; static_cast&lt;int&gt;(displayedTasks.size())) {
+                const auto&amp; t = displayedTasks[selected];
+                drawPlanningLabel(graphics, widen(&quot;AW-&quot; + std::to_string(t.id) + &quot; | &quot; + t.title + &quot; | &quot; + t.priority + &quot; | &quot; + t.status + &quot; | Due &quot; + t.dueDate), x, height - 112, w, 26, 10, COLOR_TEXT);
+            }
+            drawButton(graphics, L&quot;Open selected client&quot;, x,
+                height - 80, 195, 39, ACTION_TASK_CLIENT, true);
+            drawButton(graphics,L&quot;Edit ticket&quot;,x+418,height-80,140,39,ACTION_EDIT_TASK,false);
+            drawButton(graphics, L&quot;Complete selected task&quot;, x + 209,
+                height - 80, 195, 39, ACTION_TASK_COMPLETE, false);
+        }
+        else {
+            drawButton(graphics, L&quot;Open goal client&quot;, x,
+                height - 80, 195, 39, ACTION_GOAL_CLIENT, true);
+            drawButton(graphics,L&quot;Edit goal&quot;,x+209,height-80,140,39,ACTION_EDIT_GOAL,false);
+        }
+    }
+
+    void paintAllocationDetail(Graphics&amp; graphics, int x, int w) {
+        drawRoundedBox(graphics, x, 139, w, 390, 14,
+            COLOR_WHITE, COLOR_LINE);
+        drawLabel(graphics, L&quot;Asset-class exposure from persisted holdings&quot;,
+            x + 20, 152, w - 40, 39, 19, COLOR_TEXT, true);
+        drawAllocationBars(graphics, x + 29, 217, w - 75,
+            analytics.enterpriseAllocation(), L&quot;Share of administered assets&quot;);
+        drawLabel(graphics,
+            L&quot;Includes only fictional stored positions and modeled prices. &quot;
+            L&quot;No security-level risk or suitability verification is implied.&quot;,
+            x + 22, 484, w - 44, 31, 11, COLOR_MUTED);
+        drawButton(graphics, L&quot;Review client profiles&quot;, x, 558,
+            206, 42, ACTION_CLIENTS, true);
+    }
+
+    void paintHistoryDetail(Graphics&amp; graphics, int x, int w) {
+        drawRoundedBox(graphics, x, 139, w, 416, 14,
+            COLOR_WHITE, COLOR_LINE);
+        drawLabel(graphics, L&quot;Aggregated SQLite portfolio snapshots&quot;,
+            x + 20, 151, w - 40, 43, 20, COLOR_TEXT, true);
+        drawHistoryChart(graphics, x + 30, 215, w - 68, 286,
+            analytics.enterpriseHistory(), L&quot;Monthly modeled assets&quot;);
+        drawLabel(graphics,
+            L&quot;Change in stored snapshot value is not a time-weighted return. &quot;
+            L&quot;Cash flows and modeling assumptions affect comparisons.&quot;,
+            x + 22, 508, w - 44, 30, 11, COLOR_MUTED);
+        drawButton(graphics, L&quot;Export detailed workbook&quot;, x, 573,
+            240, 42, ACTION_EXPORT_ENTERPRISE_XLSX, true);
+    }
+
+    void paintLoading(Graphics&amp; graphics) {
+        graphics.Clear(COLOR_CREAM);
+        drawWealthEmblem(graphics, (REAL)width / 2 - 30,
+            (REAL)height / 2 - 120, 60);
+        drawLabel(graphics, L&quot;Preparing your workspace&quot;,
+            width / 2 - 260, height / 2 - 12, 520, 46, 27, COLOR_TEXT,
+            true, StringAlignmentCenter);
+        drawLabel(graphics, L&quot;Reading persisted relational data&quot;,
+            width / 2 - 250, height / 2 + 41, 500, 30, 13, COLOR_MUTED,
+            false, StringAlignmentCenter);
+        for (int i = 0;i &lt; 3;++i) {
+            const Color color = (i + loadingFrame) % 3 == 0
+                ? COLOR_GOLD : ((i + loadingFrame) % 3 == 1
+                    ? COLOR_SAGE : COLOR_TERRACOTTA);
+            SolidBrush dot(color);
+            graphics.FillEllipse(&amp;dot,
+                (REAL)(width / 2 - 30 + i * 24), (REAL)(height / 2 + 98), 9.0f, 9.0f);
+        }
+    }
+
+    // ========================================================
+    // CLIENT LIST
+    // ========================================================
+
+    void refreshClientList() {
+
+        if (!authenticated) {
+
+            return;
+        }
+
+
+        const int previouslySelectedClient = selectedClientId();
+        const std::string search =
+            narrow(
+                controlText(
+                    searchField));
+
+
+        displayedClients =
+            search.empty()
+            ? repository
+            .getAllClients()
+            : repository
+            .searchNamePrefix(
+                search);
+
+
+        std::vector&lt;std::pair&lt;int, double&gt;&gt; clientValues;
+        for (const auto&amp; c : displayedClients) clientValues.emplace_back(c.id, analytics.clientDashboard(c.id).currentValue);
+        auto portfolioValue = [&amp;](int id) { for (const auto&amp; v : clientValues) if (v.first == id) return v.second; return 0.0; };
+        std::stable_sort(displayedClients.begin(), displayedClients.end(), [&amp;](const Client&amp; a, const Client&amp; b) {
+            int result = 0;
+            if (clientSortColumn == 0) result = (a.id &gt; b.id) - (a.id &lt; b.id);
+            else if (clientSortColumn == 5) { double av = portfolioValue(a.id), bv = portfolioValue(b.id); result = (av &gt; bv) - (av &lt; bv); }
+            else {
+                auto value = [&amp;](const Client&amp; c) { switch(clientSortColumn) { case 1: return c.name; case 2: return c.householdName; case 3: return c.advisorName; case 4: return riskLevelToString(c.riskLevel); default: return std::string(c.active ? &quot;Active&quot; : &quot;Inactive&quot;); } };
+                result = _stricmp(value(a).c_str(), value(b).c_str());
+            }
+            return clientSortAscending ? result &lt; 0 : result &gt; 0;
+        });
+        markSort(clientList, clientSortColumn, clientSortAscending);
+        ListView_DeleteAllItems(
+            clientList);
+
+
+        for (
+            size_t row = 0;
+            row &lt;
+            displayedClients.size();
+            ++row) {
+
+            const Client&amp; client =
+                displayedClients[
+                    row];
+
+
+            std::wstring values[] = {
+
+                std::to_wstring(
+                    client.id),
+
+                widen(
+                    client.name),
+
+                widen(
+                    client.householdName),
+
+                widen(
+                    client.advisorName),
+
+                widen(
+                    riskLevelToString(
+                        client.riskLevel)),
+
+                moneyText(
+                    portfolioValue(client.id)),
+
+                client.active
+                ? L&quot;Active&quot;
+                : L&quot;Inactive&quot;
+            };
+
+
+            LVITEMW item = {};
+
+            item.mask =
+                LVIF_TEXT;
+
+            item.iItem =
+                static_cast&lt;int&gt;(
+                    row);
+
+            item.pszText =
+                values[
+                    0]
+                .data();
+
+
+            const int inserted =
+                ListView_InsertItem(
+                    clientList,
+                    &amp;item);
+
+
+            if (client.id == previouslySelectedClient) ListView_SetItemState(clientList, inserted, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+
+            for (
+                int column = 1;
+                column &lt;
+                7;
+                ++column) {
+
+                ListView_SetItemText(
+                    clientList,
+                    inserted,
+                    column,
+                    values[
+                        column]
+                    .data());
+            }
+        }
+    }
+
+
+    int selectedClientId() const {
+
+        const int row =
+            ListView_GetNextItem(
+                clientList,
+                -1,
+                LVNI_SELECTED);
+
+
+        if (
+            row &lt;
+            0 ||
+            static_cast&lt;size_t&gt;(
+                row) &gt;=
+            displayedClients.size()) {
+
+            return -1;
+        }
+
+
+        return displayedClients[
+            row]
+            .id;
+    }
+
+
+    void refreshHoldingsList() {
+
+        ListView_DeleteAllItems(
+            holdingsList);
+
+
+        if (
+            selectedWorkspaceClientId &lt;
+            0) {
+
+            return;
+        }
+
+
+        const ClientDashboard dashboard =
+            analytics.clientDashboard(
+                selectedWorkspaceClientId);
+
+
+        for (
+            size_t row = 0;
+            row &lt;
+            dashboard
+            .topHoldings
+            .size();
+            ++row) {
+
+            const Holding&amp; holding =
+                dashboard
+                .topHoldings[
+                    row];
+
+
+            const double weight =
+                dashboard.currentValue &gt;
+                0.0
+                ? holding.marketValue /
+                dashboard.currentValue *
+                100.0
+                : 0.0;
+
+
+            std::wostringstream quantity;
+
+
+            quantity
+                &lt;&lt; std::fixed
+                &lt;&lt; std::setprecision(
+                    2)
+                &lt;&lt; holding.quantity;
+
+
+            std::wostringstream weightText;
+
+
+            weightText
+                &lt;&lt; std::fixed
+                &lt;&lt; std::setprecision(
+                    1)
+                &lt;&lt; weight
+                &lt;&lt; L&quot;%&quot;;
+
+
+            std::wstring values[] = {
+
+                widen(
+                    holding.symbol),
+
+                widen(
+                    holding.securityName),
+
+                widen(
+                    holding.assetClass),
+
+                quantity.str(),
+
+                moneyText(
+                    holding.marketValue),
+
+                moneyText(
+                    holding.unrealizedGain),
+
+                weightText.str()
+            };
+
+
+            LVITEMW item = {};
+
+            item.mask =
+                LVIF_TEXT;
+
+            item.iItem =
+                static_cast&lt;int&gt;(
+                    row);
+
+            item.pszText =
+                values[
+                    0]
+                .data();
+
+
+            const int inserted =
+                ListView_InsertItem(
+                    holdingsList,
+                    &amp;item);
+
+
+            for (
+                int column = 1;
+                column &lt;
+                7;
+                ++column) {
+
+                ListView_SetItemText(
+                    holdingsList,
+                    inserted,
+                    column,
+                    values[
+                        column]
+                    .data());
+            }
+        }
+    }
+
+
+    // ========================================================
+    // OPERATIONAL REGISTERS. ALL ROWS COME FROM SQLITE
+    // ========================================================
+
+    void fillListRow(HWND list, int index,
+        const std::vector&lt;std::wstring&gt;&amp; columns) {
+        if (columns.empty()) return;
+        LVITEMW item = {};
+        item.mask = LVIF_TEXT;
+        item.iItem = index;
+        item.pszText = const_cast&lt;LPWSTR&gt;(columns[0].c_str());
+        const int inserted = ListView_InsertItem(list, &amp;item);
+        for (size_t j = 1; j &lt; columns.size(); ++j)
+            ListView_SetItemText(list, inserted, (int)j,
+                const_cast&lt;LPWSTR&gt;(columns[j].c_str()));
+    }
+
+    void refreshTasksList() {
+        if (!authenticated || !tasksList) return;
+        int oldIndex = selectedTaskIndex();
+        int selectedId = oldIndex &gt;= 0 &amp;&amp; oldIndex &lt; static_cast&lt;int&gt;(displayedTasks.size()) ? displayedTasks[oldIndex].id : -1;
+        displayedTasks = repository.getOpenTasks(std::nullopt, true);
+        auto clientName = [&amp;](const AdvisorTask&amp; t) { auto c = t.clientId ? repository.findClientById(*t.clientId) : std::optional&lt;Client&gt;{}; return c ? c-&gt;name : std::string(&quot;Firm wide&quot;); };
+        auto rank = [](const std::string&amp; p) { return p == &quot;Urgent&quot; ? 0 : p == &quot;High&quot; ? 1 : p == &quot;Medium&quot; ? 2 : 3; };
+        std::stable_sort(displayedTasks.begin(), displayedTasks.end(), [&amp;](const AdvisorTask&amp; a, const AdvisorTask&amp; b) {
+            int result = 0;
+            if (taskSortColumn == 0) result = (a.id &gt; b.id) - (a.id &lt; b.id);
+            else if (taskSortColumn == 3) result = rank(a.priority) - rank(b.priority);
+            else {
+                auto value = [&amp;](const AdvisorTask&amp; t) { switch(taskSortColumn) { case 1: return clientName(t); case 2: return t.title; case 4: return t.status; case 5: return t.dueDate; case 6: return t.assignedTo; default: return t.category; } };
+                result = _stricmp(value(a).c_str(), value(b).c_str());
+            }
+            return taskSortAscending ? result &lt; 0 : result &gt; 0;
+        });
+        for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) ListView_DeleteAllItems(lane);
+        for (size_t i = 0; i &lt; displayedTasks.size(); ++i) {
+            const auto&amp; t = displayedTasks[i];
+            HWND lane = t.completed ? completedTasksList : (t.priority == &quot;High&quot; || t.priority == &quot;Urgent&quot; ? tasksList : mediumTasksList);
+            int row = ListView_GetItemCount(lane);
+            fillListRow(lane, row, { widen(&quot;AW-&quot; + std::to_string(t.id)), widen(clientName(t)), widen(t.title), widen(t.priority), widen(t.status), widen(t.dueDate), widen(t.assignedTo), widen(t.category) });
+            LVITEMW item{}; item.mask = LVIF_PARAM; item.iItem = row; item.lParam = static_cast&lt;LPARAM&gt;(i); ListView_SetItem(lane, &amp;item);
+            if (t.id == selectedId) ListView_SetItemState(lane, row, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        }
+        for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) markSort(lane, taskSortColumn, taskSortAscending);
+        InvalidateRect(window, nullptr, FALSE);
+    }
+
+    void refreshGoalsList() {
+        if (!authenticated || !goalsList) return;
+        displayedGoals.clear();
+        for (const auto&amp; c : repository.getAllClients()) {
+            auto goals = repository.getGoalsForClient(c.id);
+            displayedGoals.insert(displayedGoals.end(),
+                goals.begin(), goals.end());
+        }
+        ListView_DeleteAllItems(goalsList);
+        for (size_t i = 0; i &lt; displayedGoals.size(); ++i) {
+            const auto&amp; goal = displayedGoals[i];
+            auto client = repository.findClientById(goal.clientId);
+            const double progress = goal.targetAmount &gt; 0 ?
+                100.0 * goal.currentAmount / goal.targetAmount : 0;
+            std::wostringstream p;
+            p &lt;&lt; std::fixed &lt;&lt; std::setprecision(1) &lt;&lt; progress &lt;&lt; L&quot;%&quot;;
+            fillListRow(goalsList, (int)i, {
+                std::to_wstring(goal.clientId),
+                client ? widen(client-&gt;name) : L&quot;Unknown&quot;,
+                widen(goal.name), moneyText(goal.targetAmount),
+                moneyText(goal.currentAmount), p.str(),
+                widen(goal.targetDate) });
+        }
+    }
+
+    int selectedTaskIndex() const {
+        for (HWND lane : { tasksList, mediumTasksList, completedTasksList }) {
+            int row = ListView_GetNextItem(lane, -1, LVNI_SELECTED);
+            if (row &gt;= 0) return taskRowIndex(lane, row);
+        }
+        return -1;
+    }
+
+    int selectedGoalIndex() const {
+        return ListView_GetNextItem(goalsList, -1, LVNI_SELECTED);
+    }
+
+    int demoDuplicateCount() const {
+        Statement q(database.handle(),
+            &quot;SELECT COUNT(*) FROM clients d JOIN clients p &quot;
+            &quot;ON d.id&lt;&gt;p.id &quot;
+            &quot;AND lower(d.name)=lower(p.name) &quot;
+            &quot;AND d.age=p.age &quot;
+            &quot;AND abs(d.account_balance-p.account_balance)&lt;0.01 &quot;
+            &quot;WHERE d.email LIKE &#x27;demo.investor%@aurelia.example&#x27; &quot;
+            &quot;AND p.email LIKE &#x27;%@example.com&#x27; &quot;
+            &quot;AND p.email NOT LIKE &#x27;demo.investor%@aurelia.example&#x27;;&quot;);
+        return q.step() == SQLITE_ROW ? q.columnInt(0) : 0;
+    }
+
+    void cleanLegacyDemoDuplicates() {
+        int number = demoDuplicateCount();
+        if (!number) {
+            showMessage(window, L&quot;No known legacy fictional duplicates found.&quot;);
+            return;
+        }
+        std::wstring question =
+            L&quot;Found &quot; + std::to_wstring(number) +
+            L&quot; duplicate fictional investor records.\n\n&quot;
+            L&quot;Create a SQLite backup and remove ONLY the &quot;
+            L&quot;verified &#x27;demo.investor&#x27; duplicates?\n&quot;
+            L&quot;Do not use this feature for real financial data.&quot;;
+        if (MessageBoxW(window, question.c_str(),
+            L&quot;Back up and clean demo clients&quot;,
+            MB_YESNO | MB_ICONWARNING) != IDYES) return;
+
+        const std::string backupName =
+            database.fileName() + &quot;.before_demo_cleanup.bak&quot;;
+        sqlite3* backupDb = nullptr;
+        if (sqlite3_open(backupName.c_str(), &amp;backupDb) != SQLITE_OK) {
+            if (backupDb) sqlite3_close(backupDb);
+            throw DatabaseException(&quot;Unable to open backup file&quot;);
+        }
+        sqlite3_backup* copy = sqlite3_backup_init(
+            backupDb, &quot;main&quot;, database.handle(), &quot;main&quot;);
+        if (!copy) {
+            string reason = sqlite3_errmsg(backupDb);
+            sqlite3_close(backupDb);
+            throw DatabaseException(&quot;Backup initialization failed: &quot; + reason);
+        }
+        const int rc = sqlite3_backup_step(copy, -1);
+        const int finished = sqlite3_backup_finish(copy);
+        sqlite3_close(backupDb);
+        if (rc != SQLITE_DONE || finished != SQLITE_OK)
+            throw DatabaseException(&quot;Backup incomplete. Nothing deleted.&quot;);
+
+        Transaction tx(database);
+        database.execute(
+            &quot;DELETE FROM clients WHERE id IN (&quot;
+            &quot;SELECT d.id FROM clients d JOIN clients p &quot;
+            &quot;ON d.id&lt;&gt;p.id &quot;
+            &quot;AND lower(d.name)=lower(p.name) &quot;
+            &quot;AND d.age=p.age &quot;
+            &quot;AND abs(d.account_balance-p.account_balance)&lt;0.01 &quot;
+            &quot;WHERE d.email LIKE &#x27;demo.investor%@aurelia.example&#x27; &quot;
+            &quot;AND p.email LIKE &#x27;%@example.com&#x27; &quot;
+            &quot;AND p.email NOT LIKE &#x27;demo.investor%@aurelia.example&#x27;);&quot;);
+        const int deleted = database.changes();
+        repository.recordAuditEvent(
+            &quot;DEMO_DUPLICATES_CLEANED&quot;, 0,
+            std::to_string(deleted) + &quot; exact demo-only records consolidated; backup: &quot; + backupName);
+        tx.commit();
+        showMessage(window,
+            L&quot;Consolidated &quot; + std::to_wstring(deleted) +
+            L&quot; verified demo records.\nA backup was saved alongside the SQLite file.&quot;);
+        updateLayout();
+    }
+
+    // ========================================================
+    // BUTTON
+    // ========================================================
+
+    void drawButton(
+        Graphics&amp; graphics,
+        const std::wstring&amp; text,
+        int x,
+        int y,
+        int buttonWidth,
+        int buttonHeight,
+        int action,
+        bool primary =
+        false) {
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                x),
+            static_cast&lt;REAL&gt;(
+                y),
+            static_cast&lt;REAL&gt;(
+                buttonWidth),
+            static_cast&lt;REAL&gt;(
+                buttonHeight),
+            9,
+            primary
+            ? COLOR_DARK
+            : COLOR_WHITE,
+            primary
+            ? COLOR_DARK
+            : COLOR_LINE);
+
+
+        drawLabel(
+            graphics,
+            text,
+            static_cast&lt;REAL&gt;(
+                x +
+                5),
+            static_cast&lt;REAL&gt;(
+                y),
+            static_cast&lt;REAL&gt;(
+                buttonWidth -
+                10),
+            static_cast&lt;REAL&gt;(
+                buttonHeight),
+            12,
+            primary
+            ? COLOR_WHITE
+            : COLOR_TEXT,
+            true,
+            StringAlignmentCenter);
+
+
+        clickAreas.push_back(
+            {
+                {
+                    x,
+                    y,
+                    x +
+                    buttonWidth,
+                    y +
+                    buttonHeight
+                },
+
+                action
+            });
+    }
+
+
+    // ========================================================
+    // METRIC CARD
+    // ========================================================
+
+    void drawMetricCard(
+        Graphics&amp; graphics,
+        int x,
+        int y,
+        int cardWidth,
+        const std::wstring&amp; title,
+        const std::wstring&amp; value,
+        const std::wstring&amp; subtitle) {
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                x),
+            static_cast&lt;REAL&gt;(
+                y),
+            static_cast&lt;REAL&gt;(
+                cardWidth),
+            110,
+            14,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawLabel(
+            graphics,
+            title,
+            static_cast&lt;REAL&gt;(
+                x +
+                18),
+            static_cast&lt;REAL&gt;(
+                y +
+                10),
+            static_cast&lt;REAL&gt;(
+                cardWidth -
+                36),
+            24,
+            10,
+            COLOR_MUTED,
+            true);
+
+
+        drawLabel(
+            graphics,
+            value,
+            static_cast&lt;REAL&gt;(
+                x +
+                18),
+            static_cast&lt;REAL&gt;(
+                y +
+                35),
+            static_cast&lt;REAL&gt;(
+                cardWidth -
+                36),
+            38,
+            23,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            subtitle,
+            static_cast&lt;REAL&gt;(
+                x +
+                18),
+            static_cast&lt;REAL&gt;(
+                y +
+                78),
+            static_cast&lt;REAL&gt;(
+                cardWidth -
+                36),
+            20,
+            9,
+            COLOR_MUTED);
+    }
+
+
+    // ========================================================
+    // ALLOCATION CHART
+    // ========================================================
+
+    void drawAllocationBars(
+        Graphics&amp; graphics,
+        int x,
+        int y,
+        int width,
+        const vector&lt;AllocationSlice&gt;&amp; slices,
+        const std::wstring&amp; title) {
+
+        drawLabel(
+            graphics,
+            title,
+            static_cast&lt;REAL&gt;(
+                x),
+            static_cast&lt;REAL&gt;(
+                y),
+            static_cast&lt;REAL&gt;(
+                width),
+            28,
+            15,
+            COLOR_TEXT,
+            true);
+
+
+        drawPlanningLabel(graphics, L&quot;Share of portfolio (%)&quot;, x, y + 25, width, 18, 9, COLOR_MUTED);
+        int rowY = y + 48;
+
+
+        const int maximumBar =
+            std::max(
+                120,
+                width -
+                185);
+
+
+        int index =
+            0;
+
+
+        for (
+            const AllocationSlice&amp; slice :
+            slices) {
+
+            if (
+                index &gt;=
+                5) {
+
+                break;
+            }
+
+
+            drawLabel(
+                graphics,
+                widen(
+                    slice.label),
+                static_cast&lt;REAL&gt;(
+                    x),
+                static_cast&lt;REAL&gt;(
+                    rowY -
+                    5),
+                145,
+                22,
+                10,
+                COLOR_TEXT,
+                true);
+
+
+            drawRoundedBox(
+                graphics,
+                static_cast&lt;REAL&gt;(
+                    x +
+                    150),
+                static_cast&lt;REAL&gt;(
+                    rowY),
+                static_cast&lt;REAL&gt;(
+                    maximumBar),
+                11,
+                5,
+                Color(
+                    255,
+                    235,
+                    232,
+                    225));
+
+
+            const int bar =
+                std::max(
+                    2,
+
+                    static_cast&lt;int&gt;(
+                        maximumBar *
+                        std::min(
+                            100.0,
+                            slice.percent) /
+                        100.0));
+
+
+            const Color fill =
+                index %
+                3 ==
+                0
+                ? COLOR_GOLD
+                : (
+                    index %
+                    3 ==
+                    1
+                    ? COLOR_SAGE
+                    : COLOR_TERRACOTTA
+                    );
+
+
+            drawRoundedBox(
+                graphics,
+                static_cast&lt;REAL&gt;(
+                    x +
+                    150),
+                static_cast&lt;REAL&gt;(
+                    rowY),
+                static_cast&lt;REAL&gt;(
+                    bar),
+                11,
+                5,
+                fill);
+
+
+            std::wostringstream percentage;
+
+
+            percentage
+                &lt;&lt; std::fixed
+                &lt;&lt; std::setprecision(
+                    1)
+                &lt;&lt; slice.percent
+                &lt;&lt; L&quot;%&quot;;
+
+
+            drawLabel(
+                graphics,
+                percentage.str(),
+                static_cast&lt;REAL&gt;(
+                    x +
+                    150 +
+                    maximumBar +
+                    8),
+                static_cast&lt;REAL&gt;(
+                    rowY -
+                    6),
+                55,
+                22,
+                10,
+                COLOR_TEXT,
+                true);
+
+
+            rowY +=
+                31;
+
+
+            index++;
+        }
+    }
+
+
+    // ========================================================
+    // HISTORY CHART
+    // ========================================================
+
+    void drawHistoryChart(
+        Graphics&amp; graphics,
+        int x,
+        int y,
+        int width,
+        int height,
+        const vector&lt;PortfolioSnapshot&gt;&amp; history,
+        const std::wstring&amp; title) {
+
+        drawPlanningLabel(graphics, title, x, y, width, 28, 15, COLOR_TEXT, true);
+        drawPlanningLabel(graphics, L&quot;Portfolio value (USD) | Stored snapshots&quot;, x, y + 27, width, 20, 9, COLOR_MUTED);
+        if (history.size() &lt; 2) { drawPlanningLabel(graphics, L&quot;At least two dated snapshots are required&quot;, x, y + 55, width, 25, 10, COLOR_MUTED); return; }
+        double minimum = history.front().value, maximum = minimum;
+        for (const auto&amp; p : history) { minimum = std::min(minimum, p.value); maximum = std::max(maximum, p.value); }
+        if (maximum &lt;= minimum) maximum = minimum + 1;
+        int left = x + 100, top = y + 58, plotWidth = std::max(60, width - 110), plotHeight = std::max(35, height - 90);
+        Pen grid(COLOR_LINE, 1.0f), line(COLOR_GOLD, 2.5f);
+        for (int i = 0; i &lt;= 2; ++i) {
+            int gy = top + i * plotHeight / 2;
+            graphics.DrawLine(&amp;grid, static_cast&lt;REAL&gt;(left), static_cast&lt;REAL&gt;(gy), static_cast&lt;REAL&gt;(left + plotWidth), static_cast&lt;REAL&gt;(gy));
+            drawPlanningLabel(graphics, moneyText(maximum - (maximum - minimum) * i / 2), x, gy - 9, 96, 20, 9, COLOR_MUTED);
+        }
+        std::vector&lt;PointF&gt; points;
+        for (size_t i = 0; i &lt; history.size(); ++i) points.emplace_back(static_cast&lt;REAL&gt;(left + plotWidth * static_cast&lt;double&gt;(i) / (history.size() - 1)), static_cast&lt;REAL&gt;(top + plotHeight - plotHeight * (history[i].value - minimum) / (maximum - minimum)));
+        graphics.DrawLines(&amp;line, points.data(), static_cast&lt;INT&gt;(points.size()));
+        drawPlanningLabel(graphics, widen(history.front().date), left, top + plotHeight + 5, plotWidth / 2, 22, 9, COLOR_MUTED);
+        drawPlanningLabel(graphics, widen(history.back().date), left + plotWidth - 100, top + plotHeight + 5, 110, 22, 9, COLOR_MUTED);
+    }
+
+
+    // ========================================================
+    // SIDEBAR
+    // ========================================================
+
+    void drawSidebar(
+        Graphics&amp; graphics) {
+
+        SolidBrush sidebarBrush(
+            COLOR_DARK);
+
+
+        graphics.FillRectangle(
+            &amp;sidebarBrush,
+            0,
+            0,
+            225,
+            height);
+
+
+        drawWealthEmblem(
+            graphics,
+            24,
+            22,
+            38);
+
+
+        drawTrackedBrand(
+            graphics,
+            L&quot;AURELIA&quot;,
+            72,
+            25,
+            19,
+            COLOR_WHITE,
+            -1.4f);
+
+
+        drawLabel(
+            graphics,
+            L&quot;ATELIER / WEALTH&quot;,
+            72,
+            58,
+            135,
+            22,
+            9,
+            COLOR_GOLD,
+            true);
+
+
+        struct NavigationEntry {
+
+            const wchar_t* title;
+
+            Page page;
+
+            int action;
+        };
+
+
+        const NavigationEntry navigation[] = {
+            {L&quot;Portfolio intelligence&quot;, Page::Dashboard, ACTION_DASHBOARD},
+            {L&quot;Client relationships&quot;, Page::Clients, ACTION_CLIENTS},
+            {L&quot;Advisor ticket desk&quot;, Page::AdvisorTasks, ACTION_TASKS},
+            {L&quot;Financial goals&quot;, Page::FinancialGoals, ACTION_GOALS},
+            {L&quot;Asset allocation&quot;, Page::AllocationDetail, ACTION_ALLOCATION},
+            {L&quot;Portfolio history&quot;, Page::HistoryDetail, ACTION_HISTORY},
+            {L&quot;Reports &amp; exports&quot;, Page::Reports, ACTION_REPORTS},
+            {L&quot;Data integrity&quot;, Page::Database, ACTION_DATABASE},
+            {L&quot;Governance log&quot;, Page::Audit, ACTION_AUDIT}
+        };
+
+        int y =
+            120;
+
+
+        for (
+            const NavigationEntry&amp; entry :
+            navigation) {
+
+            if (
+                currentPage ==
+                entry.page) {
+
+                drawRoundedBox(
+                    graphics,
+                    12,
+                    static_cast&lt;REAL&gt;(
+                        y),
+                    201,
+                    46,
+                    8,
+                    Color(
+                        255,
+                        63,
+                        72,
+                        68));
+            }
+
+
+            drawLabel(
+                graphics,
+                entry.title,
+                27,
+                static_cast&lt;REAL&gt;(
+                    y +
+                    5),
+                176,
+                36,
+                12,
+                currentPage ==
+                entry.page
+                ? COLOR_WHITE
+                : Color(
+                    255,
+                    206,
+                    211,
+                    207),
+                currentPage ==
+                entry.page);
+
+
+            clickAreas.push_back(
+                {
+                    {
+                        12,
+                        y,
+                        213,
+                        y +
+                        46
+                    },
+
+                    entry.action
+                });
+
+
+            y +=
+                47;
+        }
+
+
+        drawLabel(
+            graphics,
+            L&quot;CAPSTONE DEMO&quot;,
+            24,
+            static_cast&lt;REAL&gt;(
+                height -
+                110),
+            180,
+            23,
+            10,
+            COLOR_GOLD,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Fictional financial records&quot;,
+            24,
+            static_cast&lt;REAL&gt;(
+                height -
+                85),
+            180,
+            20,
+            9,
+            Color(
+                255,
+                205,
+                209,
+                203));
+
+
+        drawButton(
+            graphics,
+            L&quot;Sign out&quot;,
+            24,
+            height -
+            53,
+            165,
+            36,
+            ACTION_LOGOUT,
+            false);
+    }
+
+
+    // ========================================================
+    // MAIN PAINT
+    // ========================================================
+
+    void paint(
+        Graphics&amp; graphics) {
+
+        clickAreas.clear();
+
+
+        graphics.SetSmoothingMode(
+            SmoothingModeAntiAlias);
+
+
+        graphics.Clear(
+            COLOR_WHITE);
+
+
+        if (
+            currentPage ==
+            Page::Welcome) {
+
+            paintWelcome(
+                graphics);
+
+            return;
+        }
+
+
+        if (
+            currentPage ==
+            Page::Login) {
+
+            paintLogin(
+                graphics);
+
+            return;
+        }
+
+
+        if (currentPage == Page::Loading) {
+            paintLoading(graphics);
+            return;
+        }
+
+        SolidBrush backgroundBrush(
+            COLOR_CREAM);
+
+
+        graphics.FillRectangle(
+            &amp;backgroundBrush,
+            225,
+            0,
+            width -
+            225,
+            height);
+
+
+        drawSidebar(
+            graphics);
+
+
+        paintApplicationPage(
+            graphics);
+    }
+
+
+    // ========================================================
+    // WELCOME
+    // ========================================================
+
+    void paintWelcome(
+        Graphics&amp; graphics) {
+
+        SolidBrush backgroundBrush(
+            COLOR_CREAM);
+
+
+        graphics.FillRectangle(
+            &amp;backgroundBrush,
+            0,
+            0,
+            width,
+            height);
+
+
+        drawWealthEmblem(
+            graphics,
+            48,
+            34,
+            58);
+
+
+        drawTrackedBrand(
+            graphics,
+            L&quot;AURELIA&quot;,
+            122,
+            42,
+            25,
+            COLOR_TEXT,
+            -2.1f);
+
+
+        drawLabel(
+            graphics,
+            L&quot;ATELIER / WEALTH&quot;,
+            122,
+            75,
+            250,
+            25,
+            10,
+            COLOR_MUTED,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Secure portal&quot;,
+            width -
+            250,
+            42,
+            190,
+            45,
+            ACTION_LOGIN_PAGE,
+            true);
+
+
+        const int heroY =
+            height /
+            2 -
+            175;
+
+
+        drawLabel(
+            graphics,
+            L&quot;Private wealth,&quot;,
+            75,
+            static_cast&lt;REAL&gt;(
+                heroY),
+            static_cast&lt;REAL&gt;(
+                width -
+                140),
+            65,
+            48,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;beautifully understood.&quot;,
+            75,
+            static_cast&lt;REAL&gt;(
+                heroY +
+                63),
+            static_cast&lt;REAL&gt;(
+                width -
+                140),
+            65,
+            48,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Portfolio intelligence, relationship operations, &quot;
+            L&quot;database analytics, reports, goals, and governance.&quot;,
+            78,
+            static_cast&lt;REAL&gt;(
+                heroY +
+                158),
+            static_cast&lt;REAL&gt;(
+                width -
+                155),
+            35,
+            16,
+            COLOR_MUTED);
+
+
+        drawLabel(graphics,L&quot;Brianna Reed  |  SNHU CS 499 Capstone&quot;,78.0f,
+            static_cast&lt;REAL&gt;(heroY+198),static_cast&lt;REAL&gt;(width-155),30.0f,15,COLOR_GOLD,true);
+
+        drawButton(
+            graphics,
+            L&quot;Enter demonstration&quot;,
+            78,
+            heroY +
+            236,
+            250,
+            48,
+            ACTION_LOGIN_PAGE,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;CREATED BY BRIANNA REED / SNHU CS 499 COMPUTER SCIENCE CAPSTONE&quot;,
+            78,
+            static_cast&lt;REAL&gt;(
+                height -
+                85),
+            static_cast&lt;REAL&gt;(
+                width -
+                150),
+            22,
+            10,
+            COLOR_GOLD,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Fictional client portfolios / clearly dated public market observations / created by Brianna Reed.&quot;,
+            78,
+            static_cast&lt;REAL&gt;(
+                height -
+                59),
+            static_cast&lt;REAL&gt;(
+                width -
+                150),
+            22,
+            10,
+            COLOR_MUTED);
+    }
+
+
+    // ========================================================
+    // LOGIN
+    // ========================================================
+
+    void paintLogin(
+        Graphics&amp; graphics) {
+
+        SolidBrush backgroundBrush(
+            COLOR_CREAM);
+
+
+        graphics.FillRectangle(
+            &amp;backgroundBrush,
+            0,
+            0,
+            width,
+            height);
+
+
+        const int cardWidth =
+            470;
+
+
+        const int cardHeight =
+            525;
+
+
+        const int cardX =
+            width /
+            2 -
+            cardWidth /
+            2;
+
+
+        const int cardY =
+            height /
+            2 -
+            cardHeight /
+            2;
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                cardX),
+            static_cast&lt;REAL&gt;(
+                cardY),
+            static_cast&lt;REAL&gt;(
+                cardWidth),
+            static_cast&lt;REAL&gt;(
+                cardHeight),
+            20,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawWealthEmblem(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                cardX +
+                52),
+            static_cast&lt;REAL&gt;(
+                cardY +
+                34),
+            45);
+
+
+        drawTrackedBrand(
+            graphics,
+            L&quot;AURELIA&quot;,
+            static_cast&lt;REAL&gt;(
+                cardX +
+                112),
+            static_cast&lt;REAL&gt;(
+                cardY +
+                41),
+            22,
+            COLOR_TEXT,
+            -1.8f);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Secure demonstration portal&quot;,
+            static_cast&lt;REAL&gt;(
+                cardX +
+                52),
+            static_cast&lt;REAL&gt;(
+                cardY +
+                88),
+            static_cast&lt;REAL&gt;(
+                cardWidth -
+                104),
+            28,
+            12,
+            COLOR_MUTED);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Username&quot;,
+            static_cast&lt;REAL&gt;(
+                cardX +
+                70),
+            static_cast&lt;REAL&gt;(
+                height /
+                2 -
+                66),
+            330,
+            26,
+            12,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Password&quot;,
+            static_cast&lt;REAL&gt;(
+                cardX +
+                70),
+            static_cast&lt;REAL&gt;(
+                height /
+                2 +
+                3),
+            330,
+            26,
+            12,
+            COLOR_TEXT,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Sign in&quot;,
+            cardX +
+            70,
+            height /
+            2 +
+            100,
+            330,
+            46,
+            ACTION_LOGIN,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Return to welcome&quot;,
+            cardX +
+            70,
+            height /
+            2 +
+            160,
+            330,
+            42,
+            ACTION_LOGIN_PAGE,
+            false);
+    }
+
+
+    // ========================================================
+    // APPLICATION PAGE ROUTING
+    // ========================================================
+
+    void paintApplicationPage(
+        Graphics&amp; graphics) {
+
+        const int contentX =
+            254;
+
+
+        const int contentWidth =
+            std::max(
+                700,
+                width -
+                288);
+
+
+        std::wstring title;
+
+
+        switch (
+            currentPage) {
+
+        case Page::Dashboard:
+
+            title =
+                L&quot;Portfolio intelligence&quot;;
+
+            break;
+
+
+        case Page::Clients:
+
+            title =
+                L&quot;Client relationships&quot;;
+
+            break;
+
+
+        case Page::AdvisorTasks:
+            title = L&quot;Advisor ticket desk&quot;;
+            break;
+        case Page::FinancialGoals:
+            title = L&quot;Financial goals&quot;;
+            break;
+        case Page::AllocationDetail:
+            title = L&quot;Asset allocation&quot;;
+            break;
+        case Page::HistoryDetail:
+            title = L&quot;Portfolio history&quot;;
+            break;
+
+        case Page::ClientWorkspace:
+
+            title =
+                L&quot;Client portfolio workspace&quot;;
+
+            break;
+
+
+        case Page::Reports:
+
+            title =
+                L&quot;Reports &amp; exports&quot;;
+
+            break;
+
+
+        case Page::Database:
+
+            title =
+                L&quot;Data integrity&quot;;
+
+            break;
+
+
+        case Page::ClientDetails: title=L&quot;Client profile &amp; planning&quot;; break;
+        case Page::MarketData: title=L&quot;Market sources &amp; provenance&quot;; break;
+        case Page::Audit:
+
+            title =
+                L&quot;Governance log&quot;;
+
+            break;
+
+
+        default:
+
+            title =
+                L&quot;Aurelia Wealth Studio&quot;;
+
+            break;
+        }
+
+
+        drawLabel(
+            graphics,
+            title,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            22,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            46,
+            27,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;AURELIA ATELIER / PRIVATE WEALTH OPERATIONS&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            68,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            24,
+            10,
+            COLOR_MUTED,
+            true);
+
+
+        switch (
+            currentPage) {
+
+        case Page::Dashboard:
+
+            paintDashboard(
+                graphics,
+                contentX,
+                contentWidth);
+
+            break;
+
+
+        case Page::Clients:
+
+            paintClients(
+                graphics,
+                contentX,
+                contentWidth);
+
+            break;
+
+
+        case Page::ClientWorkspace:
+
+            paintClientWorkspace(
+                graphics,
+                contentX,
+                contentWidth);
+
+            break;
+
+
+        case Page::MarketData: paintMarketData(graphics,contentX,contentWidth); break;
+        case Page::ClientDetails:
+            paintClientDetails(graphics,contentX,contentWidth);
+            break;
+        case Page::AdvisorTasks:
+            paintOperationalRegister(graphics, contentX, contentWidth, true);
+            break;
+        case Page::FinancialGoals:
+            paintOperationalRegister(graphics, contentX, contentWidth, false);
+            break;
+        case Page::AllocationDetail:
+            paintAllocationDetail(graphics, contentX, contentWidth);
+            break;
+        case Page::HistoryDetail:
+            paintHistoryDetail(graphics, contentX, contentWidth);
+            break;
+
+        case Page::Reports:
+
+            paintReports(
+                graphics,
+                contentX,
+                contentWidth);
+
+            break;
+
+
+        case Page::Database:
+
+            paintDatabase(
+                graphics,
+                contentX,
+                contentWidth);
+
+            break;
+
+
+        case Page::Audit:
+
+            paintAudit(
+                graphics,
+                contentX,
+                contentWidth);
+
+            break;
+
+
+        default:
+
+            break;
+        }
+
+
+        drawLabel(
+            graphics,
+            L&quot;Fictional demonstration environment. &quot;
+            L&quot;Review signals are not personalized investment advice.&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            static_cast&lt;REAL&gt;(
+                height -
+                27),
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            18,
+            9,
+            COLOR_MUTED);
+    }
+
+
+    // ========================================================
+    // DASHBOARD
+    // ========================================================
+
+    void paintDashboard(
+        Graphics&amp; graphics,
+        int contentX,
+        int contentWidth) {
+
+        const EnterpriseSummary summary =
+            analytics.enterpriseSummary();
+
+
+        const int gap =
+            12;
+
+
+        const int cardWidth =
+            std::max(
+                150,
+                (
+                    contentWidth -
+                    gap *
+                    3
+                    ) /
+                4);
+
+
+        drawMetricCard(
+            graphics,
+            contentX,
+            120,
+            cardWidth,
+            L&quot;ASSETS ADMINISTERED&quot;,
+            moneyText(
+                summary
+                .assetsAdministered),
+            L&quot;Live value from stored holdings&quot;);
+
+
+        drawMetricCard(
+            graphics,
+            contentX +
+            cardWidth +
+            gap,
+            120,
+            cardWidth,
+            L&quot;CLIENT RELATIONSHIPS&quot;,
+            std::to_wstring(summary.clientCount),
+            std::to_wstring(summary.activeClients)+L&quot; active / &quot;+std::to_wstring(summary.clientCount-summary.activeClients)+L&quot; inactive&quot;);
+
+
+        drawMetricCard(
+            graphics,
+            contentX +
+            (
+                cardWidth +
+                gap
+                ) *
+            2,
+            120,
+            cardWidth,
+            L&quot;SNAPSHOT CHANGE&quot;,
+            percentText(
+                summary
+                .twelveMonthChangePercent),
+            L&quot;Stored portfolio snapshots&quot;);
+
+
+        drawMetricCard(
+            graphics,
+            contentX +
+            (
+                cardWidth +
+                gap
+                ) *
+            3,
+            120,
+            cardWidth,
+            L&quot;OPEN TASKS&quot;,
+            std::to_wstring(
+                summary.openTasks),
+            std::to_wstring(
+                summary.overdueTasks) +
+            L&quot; overdue&quot;);
+
+
+        const int half =
+            (
+                contentWidth -
+                16
+                ) /
+            2;
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            250,
+            static_cast&lt;REAL&gt;(
+                half),
+            305,
+            15,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawAllocationBars(
+            graphics,
+            contentX +
+            20,
+            267,
+            half -
+            40,
+            analytics
+            .enterpriseAllocation(),
+            L&quot;Enterprise asset allocation&quot;);
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                half +
+                16),
+            250,
+            static_cast&lt;REAL&gt;(
+                half),
+            305,
+            15,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawHistoryChart(
+            graphics,
+            contentX +
+            half +
+            36,
+            267,
+            half -
+            56,
+            255,
+            analytics
+            .enterpriseHistory(),
+            L&quot;Portfolio value trend&quot;);
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            575,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            110,
+            15,
+            COLOR_SOFT_GOLD,
+            COLOR_LINE);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Operating signals&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                20),
+            588,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                40),
+            28,
+            15,
+            COLOR_TEXT,
+            true);
+
+
+        std::wostringstream signalText;
+
+
+        signalText
+            &lt;&lt; L&quot;Goals funded &gt;=55%: &quot;
+            &lt;&lt; summary.goals.onTrack
+
+            &lt;&lt; L&quot;     Goals needing review: &quot;
+            &lt;&lt; summary.goals.watch
+
+            &lt;&lt; L&quot;     Completed goals: &quot;
+            &lt;&lt; summary.goals.completed
+
+            &lt;&lt; L&quot;     Unrealized gain: &quot;
+            &lt;&lt; moneyText(
+                summary
+                .unrealizedGain);
+
+
+        drawLabel(
+            graphics,
+            signalText.str(),
+            static_cast&lt;REAL&gt;(
+                contentX +
+                20),
+            624,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                40),
+            32,
+            11,
+            COLOR_MUTED);
+
+
+        drawButton(
+            graphics,
+            L&quot;Open clients&quot;,
+            contentX,
+            height -
+            82,
+            135,
+            39,
+            ACTION_CLIENTS,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Reports&quot;,
+            contentX +
+            148,
+            height -
+            82,
+            115,
+            39,
+            ACTION_REPORTS,
+            false);
+
+        drawButton(graphics,L&quot;Market sources&quot;,contentX+277,height-82,145,39,ACTION_MARKET,false);
+        drawButton(graphics,L&quot;Create ticket&quot;,contentX+435,height-82,140,39,ACTION_NEW_TASK,false);
+        drawButton(graphics,L&quot;Create goal&quot;,contentX+588,height-82,130,39,ACTION_NEW_GOAL,false);
+        // Entire cards and charts are clickable, with matching records
+        const int actionByCard[4] = {
+            ACTION_ALLOCATION, ACTION_CLIENTS, ACTION_HISTORY, ACTION_TASKS };
+        for (int i = 0; i &lt; 4; ++i) {
+            const int left = contentX + i * (cardWidth + gap);
+            clickAreas.push_back({
+                {left,120,left + cardWidth,230}, actionByCard[i] });
+        }
+        clickAreas.push_back({
+            {contentX,250,contentX + half,555}, ACTION_ALLOCATION });
+        clickAreas.push_back({
+            {contentX + half + 16,250,contentX + contentWidth,555}, ACTION_HISTORY });
+        clickAreas.push_back({
+            {contentX,575,contentX + contentWidth,685}, ACTION_GOALS });
+    }
+
+
+
+
+
+    // ========================================================
+    // CLIENT LIST
+    // ========================================================
+
+    void paintClients(
+        Graphics&amp; graphics,
+        int contentX,
+        int contentWidth) {
+
+        drawLabel(
+            graphics,
+            L&quot;Search client relationships&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            116,
+            380,
+            28,
+            11,
+            COLOR_MUTED);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Double-click a client or select one &quot;
+            L&quot;and choose Open workspace.&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                410),
+            145,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                410),
+            35,
+            10,
+            COLOR_MUTED);
+
+
+        drawButton(
+            graphics,
+            L&quot;Open workspace&quot;,
+            contentX,
+            height -
+            75,
+            160,
+            39,
+            ACTION_OPEN_CLIENT,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Refresh&quot;,
+            contentX +
+            173,
+            height -
+            75,
+            105,
+            39,
+            ACTION_REFRESH,
+            false);
+    }
+
+
+    // ========================================================
+    // CLIENT WORKSPACE
+    // ========================================================
+
+    void paintClientWorkspace(
+        Graphics&amp; graphics,
+        int contentX,
+        int contentWidth) {
+
+        if (
+            selectedWorkspaceClientId &lt;
+            0) {
+
+            drawLabel(
+                graphics,
+                L&quot;No client selected.&quot;,
+                static_cast&lt;REAL&gt;(
+                    contentX),
+                150,
+                static_cast&lt;REAL&gt;(
+                    contentWidth),
+                40,
+                18,
+                COLOR_MUTED);
+
+            return;
+        }
+
+
+        const ClientDashboard dashboard =
+            analytics.clientDashboard(
+                selectedWorkspaceClientId);
+
+
+        drawLabel(
+            graphics,
+            widen(
+                dashboard.client.name),
+            static_cast&lt;REAL&gt;(
+                contentX),
+            108,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            38,
+            24,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            widen(
+                dashboard
+                .client
+                .householdName +
+                &quot;  |  &quot; +
+                dashboard
+                .client
+                .advisorName +
+                &quot;  |  &quot; +
+                riskLevelToString(
+                    dashboard
+                    .client
+                    .riskLevel)),
+            static_cast&lt;REAL&gt;(
+                contentX),
+            143,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            27,
+            10,
+            COLOR_MUTED);
+
+
+        const int gap =
+            12;
+
+
+        const int cardWidth =
+            std::max(
+                160,
+                (
+                    contentWidth -
+                    gap *
+                    3
+                    ) /
+                4);
+
+
+        drawMetricCard(
+            graphics,
+            contentX,
+            180,
+            cardWidth,
+            L&quot;PORTFOLIO VALUE&quot;,
+            moneyText(
+                dashboard
+                .currentValue),
+            L&quot;Stored holdings&quot;);
+
+
+        drawMetricCard(
+            graphics,
+            contentX +
+            cardWidth +
+            gap,
+            180,
+            cardWidth,
+            L&quot;UNREALIZED GAIN&quot;,
+            moneyText(
+                dashboard
+                .unrealizedGain),
+            L&quot;Price minus cost basis&quot;);
+
+
+        drawMetricCard(
+            graphics,
+            contentX +
+            (
+                cardWidth +
+                gap
+                ) *
+            2,
+            180,
+            cardWidth,
+            L&quot;SNAPSHOT CHANGE&quot;,
+            percentText(
+                dashboard
+                .twelveMonthChangePercent),
+            L&quot;Stored monthly snapshots&quot;);
+
+
+        double primaryGoal =
+            0.0;
+
+
+        if (
+            !dashboard.goals.empty() &amp;&amp;
+            dashboard
+            .goals
+            .front()
+            .targetAmount &gt;
+            0.0) {
+
+            primaryGoal =
+                dashboard
+                .goals
+                .front()
+                .currentAmount /
+                dashboard
+                .goals
+                .front()
+                .targetAmount *
+                100.0;
+        }
+
+
+        drawMetricCard(
+            graphics,
+            contentX +
+            (
+                cardWidth +
+                gap
+                ) *
+            3,
+            180,
+            cardWidth,
+            L&quot;PRIMARY GOAL&quot;,
+            percentText(
+                primaryGoal),
+            dashboard.goals.empty()
+            ? L&quot;No active goal&quot;
+            : widen(
+                dashboard
+                .goals
+                .front()
+                .name));
+
+
+        const int half =
+            (
+                contentWidth -
+                16
+                ) /
+            2;
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            310,
+            static_cast&lt;REAL&gt;(
+                half),
+            215,
+            14,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawAllocationBars(
+            graphics,
+            contentX +
+            16,
+            322,
+            half -
+            32,
+            dashboard.actualAllocation,
+            L&quot;Actual allocation&quot;);
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                half +
+                16),
+            310,
+            static_cast&lt;REAL&gt;(
+                half),
+            215,
+            14,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawHistoryChart(
+            graphics,
+            contentX +
+            half +
+            34,
+            322,
+            half -
+            52,
+            182,
+            dashboard.history,
+            L&quot;Portfolio history&quot;);
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            538,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            40,
+            12,
+            COLOR_SOFT_GOLD,
+            COLOR_LINE);
+
+
+        if (
+            !dashboard.insights.empty()) {
+
+            drawLabel(
+                graphics,
+                widen(
+                    dashboard
+                    .insights
+                    .front()
+                    .title +
+                    &quot;: &quot; +
+                    dashboard
+                    .insights
+                    .front()
+                    .detail),
+                static_cast&lt;REAL&gt;(
+                    contentX +
+                    14),
+                543,
+                static_cast&lt;REAL&gt;(
+                    contentWidth -
+                    28),
+                28,
+                10,
+                dashboard
+                .insights
+                .front()
+                .severity ==
+                &quot;High&quot;
+                ? COLOR_TERRACOTTA
+                : COLOR_MUTED,
+                dashboard
+                .insights
+                .front()
+                .severity ==
+                &quot;High&quot;);
+        }
+
+
+        drawButton(
+            graphics,
+            L&quot;Back to clients&quot;,
+            contentX,
+            height -
+            75,
+            145,
+            39,
+            ACTION_BACK_TO_CLIENTS,
+            false);
+
+
+        drawButton(
+            graphics,
+            L&quot;Client PDF&quot;,
+            contentX +
+            158,
+            height -
+            75,
+            120,
+            39,
+            ACTION_EXPORT_CLIENT_PDF,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Client Excel&quot;,
+            contentX +
+            291,
+            height -
+            75,
+            125,
+            39,
+            ACTION_EXPORT_CLIENT_XLSX,
+            false);
+        drawButton(graphics,L&quot;Profile &amp; planning&quot;,contentX+430,height-75,165,39,ACTION_CLIENT_DETAILS,false);
+    }
+
+
+    // ========================================================
+    // REPORTS
+    // ========================================================
+
+    void paintReports(
+        Graphics&amp; graphics,
+        int contentX,
+        int contentWidth) {
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            125,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            210,
+            16,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Enterprise reporting&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                24),
+            143,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                48),
+            34,
+            20,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Generate branded reports directly from &quot;
+            L&quot;stored clients, accounts, holdings, securities, &quot;
+            L&quot;portfolio history, goals, transactions, and tasks.&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                24),
+            182,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                48),
+            46,
+            11,
+            COLOR_MUTED);
+
+
+        drawButton(
+            graphics,
+            L&quot;Enterprise PDF&quot;,
+            contentX +
+            24,
+            252,
+            165,
+            46,
+            ACTION_EXPORT_ENTERPRISE_PDF,
+            true);
+
+
+        drawButton(
+            graphics,
+            L&quot;Enterprise Excel&quot;,
+            contentX +
+            204,
+            252,
+            175,
+            46,
+            ACTION_EXPORT_ENTERPRISE_XLSX,
+            false);
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            360,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            220,
+            16,
+            COLOR_SOFT_GOLD,
+            COLOR_LINE);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Client reporting&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                24),
+            378,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                48),
+            32,
+            18,
+            COLOR_TEXT,
+            true);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Open a client workspace first, then generate &quot;
+            L&quot;a PDF or Excel workbook scoped to that relationship. &quot;
+            L&quot;PDF reports include charts and review signals. &quot;
+            L&quot;Excel workbooks contain the underlying relational data.&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                24),
+            418,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                48),
+            62,
+            11,
+            COLOR_MUTED);
+
+
+        drawButton(
+            graphics,
+            L&quot;Selected client PDF&quot;,
+            contentX +
+            24,
+            505,
+            180,
+            44,
+            ACTION_EXPORT_CLIENT_PDF,
+            false);
+
+
+        drawButton(
+            graphics,
+            L&quot;Selected client Excel&quot;,
+            contentX +
+            218,
+            505,
+            190,
+            44,
+            ACTION_EXPORT_CLIENT_XLSX,
+            false);
+    }
+
+
+    // ========================================================
+    // DATA INTEGRITY
+    // ========================================================
+
+    void paintDatabase(
+        Graphics&amp; graphics,
+        int contentX,
+        int contentWidth) {
+
+        Statement integrity(
+            database.handle(),
+            &quot;PRAGMA integrity_check;&quot;);
+
+
+        std::wstring result =
+            L&quot;Unavailable&quot;;
+
+
+        if (
+            integrity.step() ==
+            SQLITE_ROW) {
+
+            result =
+                widen(
+                    integrity.columnText(
+                        0));
+        }
+
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            125,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            390,
+            15,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        const std::vector&lt;
+            std::pair&lt;
+            std::wstring,
+            std::wstring&gt;&gt;
+            rows = {
+
+            {
+                L&quot;Storage engine&quot;,
+
+                L&quot;SQLite / WinSQLite&quot;
+            },
+
+            {
+                L&quot;Database file&quot;,
+
+                widen(
+                    database.fileName())
+            },
+
+            {
+                L&quot;SQLite version&quot;,
+
+                widen(
+                    sqlite3_libversion())
+            },
+
+            {
+                L&quot;Integrity check&quot;,
+
+                result
+            },
+
+            {
+                L&quot;Schema version&quot;,
+
+                L&quot;2&quot;
+            },
+
+            {
+                L&quot;Relational domains&quot;,
+
+                L&quot;Clients • Accounts • Holdings • &quot;
+                L&quot;Transactions • Snapshots • Goals • &quot;
+                L&quot;Notes • Tasks&quot;
+            }
+        };
+
+
+        int y =
+            150;
+
+
+        for (
+            const auto&amp; row :
+            rows) {
+
+            drawLabel(
+                graphics,
+                row.first,
+                static_cast&lt;REAL&gt;(
+                    contentX +
+                    22),
+                static_cast&lt;REAL&gt;(
+                    y),
+                210,
+                30,
+                12,
+                COLOR_MUTED);
+
+
+            drawLabel(
+                graphics,
+                row.second,
+                static_cast&lt;REAL&gt;(
+                    contentX +
+                    250),
+                static_cast&lt;REAL&gt;(
+                    y),
+                static_cast&lt;REAL&gt;(
+                    contentWidth -
+                    280),
+                30,
+                12,
+                COLOR_TEXT,
+                true);
+
+
+            y +=
+                55;
+        }
+
+
+        drawLabel(
+            graphics,
+            L&quot;Prepared statements • transactions • foreign keys • &quot;
+            L&quot;indexes • audit history • WAL journal&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            545,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            35,
+            11,
+            COLOR_MUTED);
+        paintDemoDuplicateNotice(graphics, contentX, contentWidth);
+    }
+
+
+    // Legacy duplicate count is read only until confirmed by the user
+    void paintDemoDuplicateNotice(Graphics&amp; graphics,
+        int x, int w) {
+        const int n = demoDuplicateCount();
+        drawRoundedBox(graphics, x, 598, w, 94, 12,
+            COLOR_SOFT_GOLD, COLOR_LINE);
+        drawLabel(graphics,
+            n ? (L&quot;Known exact demo duplicates: &quot; + std::to_wstring(n))
+            : L&quot;No known exact demo-seed duplicates detected&quot;,
+            x + 19, 602, w - 40, 29, 13,
+            n ? COLOR_TERRACOTTA : COLOR_SAGE, true);
+        if (n) drawButton(graphics, L&quot;Back up and consolidate demo records&quot;,
+            x + 19, 640, 297, 40, ACTION_DUPLICATE_REVIEW, true);
+        else drawLabel(graphics,
+            L&quot;Your existing database is preserved. No cleanup is needed.&quot;,
+            x + 19, 640, w - 35, 30, 11, COLOR_MUTED);
+    }
+
+    // ========================================================
+    // GOVERNANCE LOG
+    // ========================================================
+
+    void paintAudit(
+        Graphics&amp; graphics,
+        int contentX,
+        int contentWidth) {
+
+        drawRoundedBox(
+            graphics,
+            static_cast&lt;REAL&gt;(
+                contentX),
+            125,
+            static_cast&lt;REAL&gt;(
+                contentWidth),
+            static_cast&lt;REAL&gt;(
+                std::max(
+                    360,
+                    height -
+                    205)),
+            15,
+            COLOR_WHITE,
+            COLOR_LINE);
+
+
+        drawLabel(
+            graphics,
+            L&quot;Recent database and export events&quot;,
+            static_cast&lt;REAL&gt;(
+                contentX +
+                20),
+            140,
+            static_cast&lt;REAL&gt;(
+                contentWidth -
+                40),
+            32,
+            16,
+            COLOR_TEXT,
+            true);
+
+
+        Statement statement(
+            database.handle(),
+            &quot;SELECT &quot;
+            &quot;occurred_at,&quot;
+            &quot;event_type,&quot;
+            &quot;details &quot;
+            &quot;FROM audit_events &quot;
+            &quot;ORDER BY id DESC &quot;
+            &quot;LIMIT 20;&quot;);
+
+
+        int y =
+            184;
+
+
+        while (
+            statement.step() ==
+            SQLITE_ROW) {
+
+            drawLabel(
+                graphics,
+                widen(
+                    statement.columnText(
+                        1)),
+                static_cast&lt;REAL&gt;(
+                    contentX +
+                    22),
+                static_cast&lt;REAL&gt;(
+                    y),
+                180,
+                26,
+                10,
+                COLOR_TEXT,
+                true);
+
+
+            drawLabel(
+                graphics,
+                widen(
+                    statement.columnText(
+                        0)),
+                static_cast&lt;REAL&gt;(
+                    contentX +
+                    205),
+                static_cast&lt;REAL&gt;(
+                    y),
+                150,
+                26,
+                9,
+                COLOR_GOLD,
+                true);
+
+
+            drawLabel(
+                graphics,
+                widen(
+                    statement.columnText(
+                        2)),
+                static_cast&lt;REAL&gt;(
+                    contentX +
+                    365),
+                static_cast&lt;REAL&gt;(
+                    y),
+                static_cast&lt;REAL&gt;(
+                    contentWidth -
+                    390),
+                26,
+                9,
+                COLOR_MUTED);
+
+
+            y +=
+                32;
+
+
+            if (
+                y &gt;
+                height -
+                70) {
+
+                break;
+            }
+        }
+    }
+
+
+    // ========================================================
+    // SAVE FILE DIALOG
+    // ========================================================
+
+    std::wstring chooseSavePath(
+        const wchar_t* filter,
+        const wchar_t* defaultExtension,
+        const wchar_t* defaultFileName) {
+
+        wchar_t path[
+            MAX_PATH] = {};
+
+
+            wcscpy_s(
+                path,
+                defaultFileName);
+
+
+            OPENFILENAMEW dialog = {};
+
+
+            dialog.lStructSize =
+                sizeof(
+                    dialog);
+
+
+            dialog.hwndOwner =
+                window;
+
+
+            dialog.lpstrFilter =
+                filter;
+
+
+            dialog.lpstrFile =
+                path;
+
+
+            dialog.nMaxFile =
+                MAX_PATH;
+
+
+            dialog.lpstrDefExt =
+                defaultExtension;
+
+
+            dialog.Flags =
+                OFN_OVERWRITEPROMPT |
+                OFN_PATHMUSTEXIST;
+
+
+            if (
+                GetSaveFileNameW(
+                    &amp;dialog)) {
+
+                return path;
+            }
+
+
+            return L&quot;&quot;;
+    }
+
+
+    void openFile(
+        const std::wstring&amp; path) {
+
+        ShellExecuteW(
+            window,
+            L&quot;open&quot;,
+            path.c_str(),
+            nullptr,
+            nullptr,
+            SW_SHOWNORMAL);
+    }
+
+
+    // ========================================================
+    // ACTIONS
+    // ========================================================
+
+    void handleAction(
+        int action) {
+
+        try {
+
+            switch (
+                action) {
+
+            case ACTION_CLIENT_DETAILS: navigate(Page::ClientDetails); break;
+            case ACTION_PROFILE_PORTFOLIO: navigate(Page::ClientWorkspace); break;
+            case ACTION_EDIT_PROFILE: editClientProfile(); break;
+            case ACTION_NEW_TASK: editTicket(false); break;
+            case ACTION_EDIT_TASK: editTicket(true); break;
+            case ACTION_NEW_GOAL: editFinancialGoal(false); break;
+            case ACTION_EDIT_GOAL: editFinancialGoal(true); break;
+            case ACTION_ADD_NOTE: addAdvisorNote(); break;
+            case ACTION_ADD_ACCOUNT: addAccount(); break;
+            case ACTION_SET_HOLDING: recordHolding(); break;
+            case ACTION_MARKET: navigate(Page::MarketData); break;
+            case ACTION_RECORD_QUOTE: enterMarketObservation(); break;
+            case ACTION_REFRESH_QUOTE: refreshMarketObservation(); break;
+            case ACTION_LOGIN_PAGE:
+
+                navigate(
+                    currentPage ==
+                    Page::Login
+                    ? Page::Welcome
+                    : Page::Login);
+
+                break;
+
+
+            case ACTION_LOGIN:
+
+                if (
+                    failedLoginAttempts &lt;
+                    3) {
+
+                    login();
+                }
+
+                break;
+
+
+            case ACTION_LOGOUT:
+
+                authenticated =
+                    false;
+
+                selectedWorkspaceClientId =
+                    -1;
+
+                SetWindowTextW(
+                    usernameField,
+                    L&quot;&quot;);
+
+                SetWindowTextW(
+                    passwordField,
+                    L&quot;&quot;);
+
+                navigate(
+                    Page::Welcome);
+
+                break;
+
+
+            case ACTION_DASHBOARD:
+
+                navigate(
+                    Page::Dashboard);
+
+                break;
+
+
+            case ACTION_CLIENTS:
+
+                navigate(
+                    Page::Clients);
+
+                break;
+
+
+            case ACTION_TASKS:
+                navigate(Page::AdvisorTasks);
+                break;
+            case ACTION_GOALS:
+                navigate(Page::FinancialGoals);
+                break;
+            case ACTION_ALLOCATION:
+                navigate(Page::AllocationDetail);
+                break;
+            case ACTION_HISTORY:
+                navigate(Page::HistoryDetail);
+                break;
+            case ACTION_TASK_CLIENT: {
+                const int row = selectedTaskIndex();
+                if (row &lt; 0 || row &gt;= (int)displayedTasks.size() ||
+                    !displayedTasks[row].clientId) {
+                    showMessage(window, L&quot;Select a task assigned to a client.&quot;);
+                    break;
+                }
+                selectedWorkspaceClientId = *displayedTasks[row].clientId;
+                navigate(Page::ClientWorkspace);
+                break;
+            }
+            case ACTION_GOAL_CLIENT: {
+                const int row = selectedGoalIndex();
+                if (row &lt; 0 || row &gt;= (int)displayedGoals.size()) {
+                    showMessage(window, L&quot;Select a goal row first.&quot;);
+                    break;
+                }
+                selectedWorkspaceClientId = displayedGoals[row].clientId;
+                navigate(Page::ClientWorkspace);
+                break;
+            }
+            case ACTION_TASK_COMPLETE: {
+                const int row = selectedTaskIndex();
+                if (row &lt; 0 || row &gt;= (int)displayedTasks.size()) {
+                    showMessage(window, L&quot;Select an open task first.&quot;);
+                    break;
+                }
+                if (MessageBoxW(window,
+                    L&quot;Mark the selected advisor task completed?&quot;,
+                    L&quot;Confirm action&quot;, MB_YESNO | MB_ICONQUESTION) != IDYES)
+                    break;
+                const auto&amp; t=displayedTasks[row];
+                repository.saveTask(t.id,t.clientId.value_or(0),t.title,
+                    t.description.empty()?&quot;Complete the documented advisor follow-up.&quot;:t.description,
+                    t.category,t.dueDate,t.priority,t.assignedTo.empty()?&quot;Brianna Reed&quot;:t.assignedTo,&quot;Completed&quot;);
+                refreshTasksList();
+                break;
+            }
+            case ACTION_DUPLICATE_REVIEW:
+                cleanLegacyDemoDuplicates();
+                break;
+
+            case ACTION_REPORTS:
+
+                navigate(
+                    Page::Reports);
+
+                break;
+
+
+            case ACTION_DATABASE:
+
+                navigate(
+                    Page::Database);
+
+                break;
+
+
+            case ACTION_AUDIT:
+
+                navigate(
+                    Page::Audit);
+
+                break;
+
+
+            case ACTION_OPEN_CLIENT:
+            {
+                const int id =
+                    selectedClientId();
+
+
+                if (
+                    id &lt;
+                    0) {
+
+                    showMessage(
+                        window,
+                        L&quot;Select a client relationship first.&quot;);
+
+                    break;
+                }
+
+
+                selectedWorkspaceClientId =
+                    id;
+
+
+                navigate(
+                    Page::ClientWorkspace);
+
+                break;
+            }
+
+
+            case ACTION_BACK_TO_CLIENTS:
+
+                navigate(
+                    Page::Clients);
+
+                break;
+
+
+            case ACTION_REFRESH:
+
+                if (currentPage == Page::Clients) refreshClientList();
+                if (currentPage == Page::AdvisorTasks) refreshTasksList();
+                if (currentPage == Page::FinancialGoals) refreshGoalsList();
+
+                break;
+
+
+            case ACTION_EXPORT_ENTERPRISE_PDF:
+            {
+                const std::wstring path =
+                    chooseSavePath(
+                        L&quot;PDF Files\0&quot;
+                        L&quot;*.pdf\0&quot;
+                        L&quot;All Files\0&quot;
+                        L&quot;*.*\0&quot;,
+
+                        L&quot;pdf&quot;,
+
+                        L&quot;Aurelia_Enterprise_Portfolio_Report.pdf&quot;);
+
+
+                if (
+                    path.empty()) {
+
+                    break;
+                }
+
+
+                pdfWriter
+                    .exportEnterpriseReport(
+                        narrow(
+                            path));
+
+
+                openFile(
+                    path);
+
+
+                showMessage(
+                    window,
+                    L&quot;Enterprise PDF created successfully.&quot;);
+
+                break;
+            }
+
+
+            case ACTION_EXPORT_ENTERPRISE_XLSX:
+            {
+                const std::wstring path =
+                    chooseSavePath(
+                        L&quot;Excel Workbook\0&quot;
+                        L&quot;*.xlsx\0&quot;
+                        L&quot;All Files\0&quot;
+                        L&quot;*.*\0&quot;,
+
+                        L&quot;xlsx&quot;,
+
+                        L&quot;Aurelia_Enterprise_Portfolio_Data.xlsx&quot;);
+
+
+                if (
+                    path.empty()) {
+
+                    break;
+                }
+
+
+                excelExporter
+                    .exportEnterpriseWorkbook(
+                        narrow(
+                            path));
+
+
+                openFile(
+                    path);
+
+
+                showMessage(
+                    window,
+                    L&quot;Enterprise Excel workbook &quot;
+                    L&quot;created successfully.&quot;);
+
+                break;
+            }
+
+
+            case ACTION_EXPORT_CLIENT_PDF:
+            {
+                if (
+                    selectedWorkspaceClientId &lt;
+                    0) {
+
+                    showMessage(
+                        window,
+                        L&quot;Open a client workspace first.&quot;);
+
+                    break;
+                }
+
+
+                const std::wstring path =
+                    chooseSavePath(
+                        L&quot;PDF Files\0&quot;
+                        L&quot;*.pdf\0&quot;
+                        L&quot;All Files\0&quot;
+                        L&quot;*.*\0&quot;,
+
+                        L&quot;pdf&quot;,
+
+                        L&quot;Aurelia_Client_Portfolio_Report.pdf&quot;);
+
+
+                if (
+                    path.empty()) {
+
+                    break;
+                }
+
+
+                pdfWriter
+                    .exportClientReport(
+                        selectedWorkspaceClientId,
+                        narrow(
+                            path));
+
+
+                openFile(
+                    path);
+
+
+                showMessage(
+                    window,
+                    L&quot;Client PDF created successfully.&quot;);
+
+                break;
+            }
+
+
+            case ACTION_EXPORT_CLIENT_XLSX:
+            {
+                if (
+                    selectedWorkspaceClientId &lt;
+                    0) {
+
+                    showMessage(
+                        window,
+                        L&quot;Open a client workspace first.&quot;);
+
+                    break;
+                }
+
+
+                const std::wstring path =
+                    chooseSavePath(
+                        L&quot;Excel Workbook\0&quot;
+                        L&quot;*.xlsx\0&quot;
+                        L&quot;All Files\0&quot;
+                        L&quot;*.*\0&quot;,
+
+                        L&quot;xlsx&quot;,
+
+                        L&quot;Aurelia_Client_Portfolio_Data.xlsx&quot;);
+
+
+                if (
+                    path.empty()) {
+
+                    break;
+                }
+
+
+                excelExporter
+                    .exportClientWorkbook(
+                        selectedWorkspaceClientId,
+                        narrow(
+                            path));
+
+
+                openFile(
+                    path);
+
+
+                showMessage(
+                    window,
+                    L&quot;Client Excel workbook &quot;
+                    L&quot;created successfully.&quot;);
+
+                break;
+            }
+
+
+            default:
+
+                break;
+            }
+
+
+            InvalidateRect(
+                window,
+                nullptr,
+                FALSE);
+        }
+
+
+        catch (
+            const std::exception&amp; exception) {
+
+            showMessage(
+                window,
+                L&quot;Operation failed:\n\n&quot; +
+                widen(
+                    exception.what()));
+
+
+            logger.write(
+                &quot;GUI_OPERATION_ERROR&quot;);
+        }
+    }
+};
+
+
+// ============================================================
+// MAIN WINDOW PROCEDURE
+// ============================================================
+
+static LRESULT CALLBACK MainWindowProc(
+    HWND window,
+    UINT message,
+    WPARAM wParam,
+    LPARAM lParam) {
+
+    AureliaApplication* app =
+        reinterpret_cast&lt;
+        AureliaApplication*&gt;(
+            GetWindowLongPtrW(
+                window,
+                GWLP_USERDATA));
+
+
+    if (
+        message ==
+        WM_NCCREATE) {
+
+        CREATESTRUCTW* create =
+            reinterpret_cast&lt;
+            CREATESTRUCTW*&gt;(
+                lParam);
+
+
+        app =
+            reinterpret_cast&lt;
+            AureliaApplication*&gt;(
+                create
+                -&gt;lpCreateParams);
+
+
+        SetWindowLongPtrW(
+            window,
+            GWLP_USERDATA,
+            reinterpret_cast&lt;
+            LONG_PTR&gt;(
+                app));
+
+
+        return TRUE;
+    }
+
+
+    if (!app) {
+
+        return DefWindowProcW(
+            window,
+            message,
+            wParam,
+            lParam);
+    }
+
+
+    switch (
+        message) {
+    case WM_TIMER:
+        if(wParam==28){app-&gt;pollMarketObservation();return 0;}
+        if (wParam == 27 &amp;&amp; app-&gt;currentPage == Page::Loading) {
+            ++app-&gt;loadingFrame;
+            InvalidateRect(window, nullptr, FALSE);
+            if (app-&gt;loadingFrame &gt;= 3) {
+                KillTimer(window, 27);
+                app-&gt;currentPage = app-&gt;loadingDestination;
+                app-&gt;updateLayout();
+            }
+            return 0;
+        }
+        break;
+
+
+    case WM_SIZE:
+
+        app-&gt;updateLayout();
+
+        return 0;
+
+
+    case WM_COMMAND:
+
+        if (
+            LOWORD(
+                wParam) ==
+            1003 &amp;&amp;
+            HIWORD(
+                wParam) ==
+            EN_CHANGE &amp;&amp;
+            app-&gt;currentPage ==
+            Page::Clients) {
+
+            app-&gt;refreshClientList();
+        }
+
+        return 0;
+
+
+    case WM_NOTIFY:
+    {
+        NMHDR* header =
+            reinterpret_cast&lt;
+            NMHDR*&gt;(
+                lParam);
+
+
+        if (
+            header &amp;&amp;
+            header-&gt;idFrom ==
+            1004 &amp;&amp;
+            header-&gt;code ==
+            NM_DBLCLK &amp;&amp;
+            app-&gt;currentPage ==
+            Page::Clients) {
+
+            app-&gt;handleAction(
+                ACTION_OPEN_CLIENT);
+
+            return 0;
+        }
+
+
+        if (header &amp;&amp; app-&gt;isTaskList(header-&gt;hwndFrom) &amp;&amp; header-&gt;code == LVN_GETINFOTIP) {
+            auto* tip = reinterpret_cast&lt;NMLVGETINFOTIPW*&gt;(lParam);
+            int index = app-&gt;taskRowIndex(header-&gt;hwndFrom, tip-&gt;iItem);
+            if (index &gt;= 0 &amp;&amp; index &lt; static_cast&lt;int&gt;(app-&gt;displayedTasks.size())) {
+                const auto&amp; t = app-&gt;displayedTasks[index];
+                auto client = t.clientId ? app-&gt;repository.findClientById(*t.clientId) : std::optional&lt;Client&gt;{};
+                std::wstring text = widen(&quot;AW-&quot; + std::to_string(t.id) + &quot; | &quot; + (client ? client-&gt;name : &quot;Firm wide&quot;) + &quot;\n&quot; + t.title + &quot;\nPriority: &quot; + t.priority + &quot; | Status: &quot; + t.status + &quot;\nDue: &quot; + t.dueDate + &quot; | Assigned to: &quot; + t.assignedTo + &quot;\nCategory: &quot; + t.category + &quot;\n&quot; + t.description);
+                wcsncpy_s(tip-&gt;pszText, tip-&gt;cchTextMax, text.c_str(), _TRUNCATE);
+            }
+            return 0;
+        }
+        if (header &amp;&amp; header-&gt;code == LVN_COLUMNCLICK) {
+            int column = reinterpret_cast&lt;NMLISTVIEW*&gt;(lParam)-&gt;iSubItem;
+            if (app-&gt;isTaskList(header-&gt;hwndFrom)) {
+                app-&gt;taskSortAscending = app-&gt;taskSortColumn == column ? !app-&gt;taskSortAscending : true;
+                app-&gt;taskSortColumn = column; app-&gt;refreshTasksList(); return 0;
+            }
+            if (header-&gt;hwndFrom == app-&gt;clientList) {
+                app-&gt;clientSortAscending = app-&gt;clientSortColumn == column ? !app-&gt;clientSortAscending : true;
+                app-&gt;clientSortColumn = column; app-&gt;refreshClientList(); return 0;
+            }
+        }
+        if (header &amp;&amp; app-&gt;isTaskList(header-&gt;hwndFrom) &amp;&amp; header-&gt;code == LVN_ITEMCHANGED) {
+            auto* change = reinterpret_cast&lt;NMLISTVIEW*&gt;(lParam);
+            if ((change-&gt;uNewState &amp; LVIS_SELECTED) &amp;&amp; !(change-&gt;uOldState &amp; LVIS_SELECTED)) {
+                for (HWND lane : { app-&gt;tasksList, app-&gt;mediumTasksList, app-&gt;completedTasksList }) if (lane != header-&gt;hwndFrom) ListView_SetItemState(lane, -1, 0, LVIS_SELECTED);
+                InvalidateRect(app-&gt;window, nullptr, FALSE);
+            }
+        }
+        if(header &amp;&amp; app-&gt;isTaskList(header-&gt;hwndFrom) &amp;&amp; header-&gt;code==NM_CUSTOMDRAW){
+            auto* cd=reinterpret_cast&lt;NMLVCUSTOMDRAW*&gt;(lParam);
+            if(cd-&gt;nmcd.dwDrawStage==CDDS_PREPAINT)return CDRF_NOTIFYITEMDRAW;
+            if(cd-&gt;nmcd.dwDrawStage==CDDS_ITEMPREPAINT){size_t row=static_cast&lt;size_t&gt;(app-&gt;taskRowIndex(header-&gt;hwndFrom, static_cast&lt;int&gt;(cd-&gt;nmcd.dwItemSpec)));if(row&lt;app-&gt;displayedTasks.size()){const auto&amp; t=app-&gt;displayedTasks[row];cd-&gt;clrText=t.completed?RGB(110,110,110):(t.priority==&quot;High&quot;||t.priority==&quot;Urgent&quot;?RGB(155,65,55):RGB(29,38,42));cd-&gt;clrTextBk=row%2?RGB(249,246,240):RGB(255,255,255);}return CDRF_DODEFAULT;}
+        }
+        if (header &amp;&amp; header-&gt;code == NM_DBLCLK &amp;&amp;
+            app-&gt;isTaskList(header-&gt;hwndFrom) &amp;&amp;
+            app-&gt;currentPage == Page::AdvisorTasks) {
+            app-&gt;handleAction(ACTION_TASK_CLIENT);
+            return 0;
+        }
+        if (header &amp;&amp; header-&gt;code == NM_DBLCLK &amp;&amp;
+            header-&gt;idFrom == 1007 &amp;&amp;
+            app-&gt;currentPage == Page::FinancialGoals) {
+            app-&gt;handleAction(ACTION_GOAL_CLIENT);
+            return 0;
+        }
+
+        break;
+    }
+
+
+    case WM_LBUTTONUP:
+    {
+        POINT point = {
+
+            static_cast&lt;short&gt;(
+                LOWORD(
+                    lParam)),
+
+            static_cast&lt;short&gt;(
+                HIWORD(
+                    lParam))
+        };
+
+
+        for (
+            const ClickArea&amp; area :
+            app-&gt;clickAreas) {
+
+            if (
+                PtInRect(
+                    &amp;area.rectangle,
+                    point)) {
+
+                app-&gt;handleAction(
+                    area.action);
+
+                return 0;
+            }
+        }
+
+
+        return 0;
+    }
+
+
+    case WM_SETCURSOR:
+    {
+        if (
+            LOWORD(
+                lParam) ==
+            HTCLIENT) {
+
+            POINT cursor = {};
+
+
+            GetCursorPos(
+                &amp;cursor);
+
+
+            ScreenToClient(
+                window,
+                &amp;cursor);
+
+
+            for (
+                const ClickArea&amp; area :
+                app-&gt;clickAreas) {
+
+                if (
+                    PtInRect(
+                        &amp;area.rectangle,
+                        cursor)) {
+
+                    SetCursor(
+                        LoadCursorW(
+                            nullptr,
+                            IDC_HAND));
+
+                    return TRUE;
+                }
+            }
+        }
+
+
+        break;
+    }
+
+
+    case WM_PAINT:
+    {
+        PAINTSTRUCT paint = {};
+
+
+        HDC deviceContext =
+            BeginPaint(
+                window,
+                &amp;paint);
+
+
+        {
+            Graphics graphics(
+                deviceContext);
+
+
+            try {
+
+                app-&gt;paint(
+                    graphics);
+            }
+
+
+            catch (
+                const std::exception&amp; exception) {
+
+                OutputDebugStringA(
+                    exception.what());
+            }
+        }
+
+
+        EndPaint(
+            window,
+            &amp;paint);
+
+
+        return 0;
+    }
+
+
+    case WM_DESTROY:
+
+        PostQuitMessage(
+            0);
+
+        return 0;
+
+
+    default:
+
+        break;
+    }
+
+
+    return DefWindowProcW(
+        window,
+        message,
+        wParam,
+        lParam);
+}
+
+
+// ============================================================
+// WINDOWS ENTRY POINT
+// ============================================================
+
+int WINAPI wWinMain(
+    HINSTANCE instance,
+    HINSTANCE,
+    LPWSTR,
+    int) {
+
+    INITCOMMONCONTROLSEX controls = {};
+
+
+    controls.dwSize =
+        sizeof(
+            controls);
+
+
+    controls.dwICC =
+        ICC_LISTVIEW_CLASSES |
+        ICC_STANDARD_CLASSES;
+
+
+    InitCommonControlsEx(
+        &amp;controls);
+
+
+    GdiplusStartupInput startupInput;
+
+
+    ULONG_PTR gdiplusToken =
+        0;
+
+
+    if (
+        GdiplusStartup(
+            &amp;gdiplusToken,
+            &amp;startupInput,
+            nullptr) !=
+        Ok) {
+
+        MessageBoxW(
+            nullptr,
+            L&quot;Unable to initialize graphical interface.&quot;,
+            L&quot;Aurelia Wealth Studio Startup Error&quot;,
+            MB_OK |
+            MB_ICONERROR);
+
+        return 1;
+    }
+
+
+    int exitCode =
+        0;
+
+
+    try {
+
+        AureliaApplication app(
+            instance);
+
+
+        app.createMainWindow();
+
+
+        MSG message = {};
+
+
+        while (
+            GetMessageW(
+                &amp;message,
+                nullptr,
+                0,
+                0) &gt;
+            0) {
+
+            TranslateMessage(
+                &amp;message);
+
+
+            DispatchMessageW(
+                &amp;message);
+        }
+
+
+        exitCode =
+            static_cast&lt;int&gt;(
+                message.wParam);
+    }
+
+
+    catch (
+        const std::exception&amp; exception) {
+
+        MessageBoxW(
+            nullptr,
+            widen(
+                exception.what())
+            .c_str(),
+            L&quot;Aurelia Wealth Studio Startup Error&quot;,
+            MB_OK |
+            MB_ICONERROR);
+
+
+        exitCode =
+            1;
+    }
+
+
+    GdiplusShutdown(
+        gdiplusToken);
+
+
+    return exitCode;
+}</code></pre></details><h3>Supporting database source</h3><ul><li><a href="source/database/AureliaForms.h">AureliaForms.h</a></li><li><a href="source/database/AureliaMarketData.h">AureliaMarketData.h</a></li><li><a href="source/database/CS499_Milestone4_DatabaseSchema.sql">CS499_Milestone4_DatabaseSchema.sql</a></li><li><a href="source/database/CS499_Milestone4_EnhancementThree.vcxproj">CS499_Milestone4_EnhancementThree.vcxproj</a></li><li><a href="source/database/CS499_Milestone4_EnhancementThree_Databases.cpp">CS499_Milestone4_EnhancementThree_Databases.cpp</a></li><li><a href="source/database/ExcelExporter.h">ExcelExporter.h</a></li><li><a href="source/database/InvestmentAnalytics.h">InvestmentAnalytics.h</a></li><li><a href="source/database/InvestmentCore.h">InvestmentCore.h</a></li><li><a href="source/database/PdfReportWriter.h">PdfReportWriter.h</a></li><li><a href="source/database/sqlite3.h">sqlite3.h</a></li></ul><figure><img src="assets/tickets.png" alt="Three advisor ticket lanes for high or urgent, medium or low and completed tickets" loading="lazy"><figcaption>Priority lanes retain record mapping after sorting.</figcaption></figure></main><footer>Brianna Reed · CS 499 · Final portfolio revision October 18, 2026<br>Fictional client records and financial modeling are used throughout this demonstration</footer></body></html>

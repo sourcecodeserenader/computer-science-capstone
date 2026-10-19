@@ -1,0 +1,111 @@
+PASS UI capture
+PASS authenticated desktop session
+PASS exactly 25 clients
+PASS no duplicate client names
+PASS no legacy duplicate candidates
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS rich client profile populated
+PASS client holdings value reconciles
+PASS latest client snapshot agrees with holdings
+PASS duplicate profile name rejected
+PASS validated client profile save
+PASS zero goal target rejected
+PASS invalid calendar date rejected
+PASS ticket text is parameterized safely
+PASS task goal note account and holding writes succeed
+PASS cross-account/invalid holding rejected
+PASS future-dated market observation rejected
+PASS transaction destructor rolls back
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS planning page navigation
+PASS UI capture
+PASS native goal form saves to SQLite
+PASS ticket completion UI confirmation succeeds
+PASS restarting does not recreate identities
+PASS foreign keys intact after mutations
+PASS database integrity after mutations
+PASS enriched enterprise and client reports exported

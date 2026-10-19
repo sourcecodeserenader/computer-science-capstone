@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Software design and engineering | Brianna Reed</title><meta name="description" content="Brianna Reed Computer Science Capstone portfolio showing software design, algorithms and database enhancements"><link rel="stylesheet" href="assets/style.css"></head><body><a class="skip" href="#main">Skip to content</a><header><div class="brand">Brianna Reed</div><p>Computer Science Capstone · Southern New Hampshire University</p><nav aria-label="Main navigation"><a href="index.html">Self assessment</a><a href="code-review.html">Code review</a><a href="engineering.html" aria-current="page">Software design</a><a href="algorithms.html">Algorithms</a><a href="databases.html">Databases</a><a href="evidence.html">Evidence and files</a></nav></header><main id="main"><p class="eyebrow">Milestone Two</p><h1>Software design and engineering</h1><p class="lead">The first enhancement replaces global state and repeated workflow logic with a Client model and separate validation, authentication, management and logging responsibilities.</p><div class="links"><a class="button" href="downloads/engineering.docx">Download narrative in Word</a><a class="button secondary" href="downloads/engineering-artifact.zip">Download complete artifact</a><a class="button secondary" href="source/engineering.cpp">Download main source</a></div><section><h2>Artifact Description</h2><p>The artifact I selected is the client management application from my CS 410 Software Reverse Engineering Project One. The original program was recreated in C++ after examining the behavior of a compiled application. Its purpose was to authenticate a user, display five investment clients and their selected services, and allow a user to change a client service choice. The original version was useful as a reverse engineering exercise, but its design still reflected the limitations of the recovered program. Client names and service selections were stored in separate global variables, authentication relied on a password value embedded directly in the source code, input validation was minimal, and the application supported only a small fixed set of client operations.</p></section><section><h2>Justification for Inclusion and Enhancement</h2><p>I selected this artifact for my ePortfolio because it gives me a strong before and after example of my growth in software design and engineering. The original version shows that I could understand and recreate the behavior of an existing program, while the enhanced version demonstrates that I can step back from working code, identify design weaknesses, and reorganize the application into a structure that is easier to understand, maintain, test, and extend. Breaking software into modules with clearly defined responsibilities can improve maintainability and make future changes easier to isolate and manage (Parnas, 1972). That progression is important to me because I want my portfolio to show more than whether I can make a program run. I want it to show that I can evaluate an existing system and make deliberate engineering decisions about structure, security, usability, and future development.</p><p>For this enhancement, I replaced the original global client variables with a Client model and an in memory collection of Client objects. I separated major responsibilities into the InvestmentCompanyApplication, ClientManager, Authenticator, InputValidator, and Logger components. I expanded the program from simply displaying records and changing a service selection to supporting client display, addition, service updates, and removal. I also centralized numeric and text input validation so invalid menu choices, invalid service selections, blank values, and nonexistent client identifiers are handled without corrupting program state or causing the application to fail. These changes support secure software development principles by addressing design, validation, and defensive programming concerns during development rather than treating security as a separate final step (Nina et al., 2021).</p><p>Authentication was also redesigned. The original artifact compared the entered password to a value stored directly in the source code and continued requesting credentials until the correct password was entered. The enhanced program reads demonstration credentials from environment variables, validates both a username and password, and limits authentication to three attempts. Rate limiting failed authentication attempts is an established authentication security practice for reducing repeated credential guessing attempts (Temoshok et al., 2025). The program also records authentication events without writing passwords to the log. I added an audit log for important application actions such as successful or failed authentication, adding a client, updating a service, removing a client, and safely exiting the program. Maintaining security related logs provides a record of system activity that can support monitoring, troubleshooting, and security analysis (Scarfone &amp; Souppaya, 2006). These changes make the artifact more modular and defensive while preserving the original purpose of the application.</p></section><section><h2>Course Outcome Progress</h2><p>In Module One, I planned for this enhancement to support Course Outcomes 1, 2, 4, and 5. I made substantial progress toward those outcomes, although I see the strongest evidence in Outcomes 2, 4, and 5 at this stage. Outcome 2 is demonstrated through clearer code organization, consistent naming, comments that explain intent and decisions, and this narrative, which communicates why the changes were made. Outcome 4 is demonstrated through the use of object oriented design, separation of concerns, reusable validation, standard library containers and algorithms, logging, and safer application flow to turn the recovered program into a more useful and maintainable solution. The separation of responsibilities throughout the enhanced application also reflects established modular software design principles (Parnas, 1972). Outcome 5 is demonstrated through removing the hard coded credential behavior, limiting authentication attempts, validating user input, avoiding password logging, and using defensive checks throughout the client management operations. These practices are consistent with secure software development approaches that incorporate security considerations throughout software design and implementation (Nina et al., 2021).</p><p>The enhancement also begins to support Outcome 1 because the application now gives a user a clearer and more reliable way to manage client information, but I expect later database and reporting work to provide stronger evidence for organizational decision making. I am not changing my overall outcome coverage plan. I am intentionally leaving the larger algorithm and data structure optimization and persistent database work for the later category enhancements so each milestone can show a distinct area of growth. Course Outcome 3 will therefore be demonstrated more directly in the Algorithms and Data Structures enhancement.</p></section><section><h2>Reflection on the Enhancement Process</h2><p>The most important thing I learned from this enhancement was that improving software design is not the same as adding more features. The original program already performed its basic tasks, so the harder part was deciding how to preserve that behavior while changing the structure underneath it. Breaking the program into smaller responsibilities made it much easier to reason about where authentication, validation, client operations, and logging belonged. It also made weaknesses in the original design more obvious because each responsibility could be evaluated separately instead of being mixed together through global variables and repeated conditional logic. This reinforced for me why modularization is important for creating software that can be understood, maintained, and changed over time (Parnas, 1972).</p><p>One challenge I encountered was changing the credential handling without simply replacing one hard coded value with another. I used environment variables so the demonstration credentials are configured outside the source file. While building the project in Visual Studio, I also encountered a compiler error because the Microsoft compiler treats getenv as an unsafe function. I corrected that implementation by using the Microsoft specific _dupenv_s function when compiling in Visual Studio while keeping a portable fallback for other compilers. That issue was useful because it required me to respond to an actual toolchain and security concern rather than only writing what looked correct on paper. It also reinforced the importance of incorporating secure implementation practices into the development process itself (Nina et al., 2021).</p><p>After the changes were complete, I rebuilt the project successfully with zero build errors and zero warnings and manually tested the main workflow. I authenticated with the configured credentials, displayed the original five clients, added a sixth test client, changed that client from Brokerage to Retirement, verified the update, removed the test client, verified that the original list remained, and exited the application safely. That testing gave me more confidence in the redesigned flow and also showed me why modular code is easier to validate. The artifact is not finished as an overall capstone project because later enhancements will address algorithmic efficiency and database persistence, but the Software Design and Engineering stage now provides a much stronger foundation for those changes.</p></section><section><h2>Final verification and instructor feedback</h2><p>For the final portfolio revision on October 18, 2026, I addressed the request for more objective test evidence by compiling the preserved console source with Visual Studio 2022, C++17 and warning level W4. The build completed without compiler diagnostics. Three automated console scenarios passed: a successful login followed by a clean exit, rejection after three failed authentication attempts, and rejection of invalid menu input followed by a valid exit. These checks supplement the manual client workflow described above; they do not claim complete test coverage.</p><p>The instructor review helped me improve how I communicate evidence. The final portfolio separates the software design stage from later algorithms and database work and maps the design choices to Outcomes Two, Four and Five. The review and revision cycle also supports Outcome One by making the artifact easier for another person to evaluate against shared expectations.</p></section><section><h2>Sources</h2><p>Nina, H., Pow-Sang, J. A., &amp; Villavicencio, M. (2021). Systematic mapping of the literature on secure software development. IEEE Access, 9, 36852–36867. https://doi.org/10.1109/ACCESS.2021.3062388</p><p>Parnas, D. L. (1972). On the criteria to be used in decomposing systems into modules. Communications of the ACM, 15(12), 1053–1058. https://doi.org/10.1145/361598.361623</p><p>Scarfone, K., &amp; Souppaya, M. (2006). Guide to computer security log management (NIST Special Publication 800-92). National Institute of Standards and Technology. https://doi.org/10.6028/NIST.SP.800-92</p><p>Temoshok, D., Fenton, J. L., Choong, Y. Y., Lefkovitz, N., Regenscheid, A., Galluzzo, R., &amp; Richer, J. P. (2025). Digital identity guidelines: Authentication and authenticator management (NIST Special Publication 800-63B-4). National Institute of Standards and Technology. https://doi.org/10.6028/NIST.SP.800-63B-4</p></section><h2>Read the implementation</h2><details><summary>Read enhanced source</summary><pre><code>/*
+ * CS 499 Computer Science Capstone
+ * Milestone Two: Enhancement One - Software Design and Engineering
+ * Student: Brianna Reed
+ * Date: September 20, 2026
+ *
+ * Artifact origin: CS 410 Software Reverse Engineering Project One
+ *
+ * Enhancement purpose:
+ * Refactor the recovered legacy-style client management program into a more
+ * modular, object-oriented, maintainable, and defensively coded C++ program.
+ *
+ * This version intentionally keeps client data in memory so later capstone
+ * enhancements can focus separately on algorithms/data structures and databases.
+ */
+
+#include &lt;algorithm&gt;
+#include &lt;cstdlib&gt;
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;limits&gt;
+#include &lt;sstream&gt;
+#include &lt;string&gt;
+#include &lt;utility&gt;
+#include &lt;vector&gt;
+
+using std::cin;
+using std::cout;
+using std::endl;
+using std::getline;
+using std::ofstream;
+using std::string;
+using std::vector;
+
+
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
+
+namespace Constants {
+    constexpr int kMaxAuthenticationAttempts = 3;
+    constexpr int kMinServiceChoice = 1;
+    constexpr int kMaxServiceChoice = 2;
+}
+
+
+// -----------------------------------------------------------------------------
+// Service Type
+// -----------------------------------------------------------------------------
+
+enum class ServiceType {
+    Brokerage = 1,
+    Retirement = 2
+};
+
+
+string serviceTypeToString(ServiceType service) {
+
+    switch (service) {
+
+    case ServiceType::Brokerage:
+        return &quot;Brokerage&quot;;
+
+    case ServiceType::Retirement:
+        return &quot;Retirement&quot;;
+
+    default:
+        return &quot;Unknown&quot;;
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+// Client Model
+// -----------------------------------------------------------------------------
+
+struct Client {
+    int id;
+    string name;
+    ServiceType service;
+};
+
+
+// -----------------------------------------------------------------------------
+// Logger
+// -----------------------------------------------------------------------------
+
+class Logger {
+
+public:
+
+    explicit Logger(string fileName)
+        : fileName_(std::move(fileName)) {
+    }
+
+
+    void write(const string&amp; message) const {
+
+        ofstream logFile(fileName_, std::ios::app);
+
+        if (logFile.is_open()) {
+            logFile &lt;&lt; message &lt;&lt; &#x27;\n&#x27;;
+        }
+    }
+
+
+private:
+
+    string fileName_;
+};
+
+
+// -----------------------------------------------------------------------------
+// Input Validation
+// -----------------------------------------------------------------------------
+
+class InputValidator {
+
+public:
+
+    static int readIntInRange(
+        const string&amp; prompt,
+        int minimum,
+        int maximum) {
+
+        while (true) {
+
+            cout &lt;&lt; prompt;
+
+            string input;
+            getline(cin, input);
+
+            std::stringstream stream(input);
+
+            int value = 0;
+            char trailingCharacter = &#x27;\0&#x27;;
+
+            if ((stream &gt;&gt; value) &amp;&amp;
+                !(stream &gt;&gt; trailingCharacter) &amp;&amp;
+                value &gt;= minimum &amp;&amp;
+                value &lt;= maximum) {
+
+                return value;
+            }
+
+            cout &lt;&lt; &quot;Invalid input. Please enter a number from &quot;
+                &lt;&lt; minimum
+                &lt;&lt; &quot; through &quot;
+                &lt;&lt; maximum
+                &lt;&lt; &quot;.\n&quot;;
+        }
+    }
+
+
+    static string readNonEmptyLine(const string&amp; prompt) {
+
+        while (true) {
+
+            cout &lt;&lt; prompt;
+
+            string value;
+            getline(cin, value);
+
+            const bool containsVisibleCharacter =
+                value.find_first_not_of(&quot; \t\r\n&quot;) != string::npos;
+
+            if (containsVisibleCharacter) {
+                return value;
+            }
+
+            cout &lt;&lt; &quot;Input cannot be blank. Please try again.\n&quot;;
+        }
+    }
+};
+
+
+// -----------------------------------------------------------------------------
+// Authentication
+// -----------------------------------------------------------------------------
+
+class Authenticator {
+
+public:
+
+    explicit Authenticator(const Logger&amp; logger)
+        : logger_(logger) {
+    }
+
+
+    bool authenticate() const {
+
+        /*
+         * Credentials are intentionally obtained from environment variables
+         * instead of being hard coded directly into the source code.
+         *
+         * Visual Studio / Microsoft C++ uses _dupenv_s because it is the
+         * Microsoft-recommended secure alternative to getenv().
+         */
+
+        const string configuredUsername =
+            readEnvironmentVariable(&quot;CS499_USERNAME&quot;);
+
+        const string configuredPassword =
+            readEnvironmentVariable(&quot;CS499_PASSWORD&quot;);
+
+
+        if (configuredUsername.empty() ||
+            configuredPassword.empty()) {
+
+            cout
+                &lt;&lt; &quot;Authentication is not configured.\n&quot;
+                &lt;&lt; &quot;Set the CS499_USERNAME and CS499_PASSWORD environment &quot;
+                &lt;&lt; &quot;variables before running the program.\n&quot;;
+
+            logger_.write(&quot;AUTH_CONFIGURATION_ERROR&quot;);
+
+            return false;
+        }
+
+
+        for (
+            int attempt = 1;
+            attempt &lt;= Constants::kMaxAuthenticationAttempts;
+            ++attempt) {
+
+            const string enteredUsername =
+                InputValidator::readNonEmptyLine(
+                    &quot;Enter your username: &quot;);
+
+            const string enteredPassword =
+                InputValidator::readNonEmptyLine(
+                    &quot;Enter your password: &quot;);
+
+
+            if (enteredUsername == configuredUsername &amp;&amp;
+                enteredPassword == configuredPassword) {
+
+                cout &lt;&lt; &quot;Authentication successful.\n\n&quot;;
+
+                /*
+                 * Passwords are intentionally NOT written to the audit log.
+                 */
+
+                logger_.write(
+                    &quot;AUTH_SUCCESS username=&quot; + enteredUsername);
+
+                return true;
+            }
+
+
+            const int remainingAttempts =
+                Constants::kMaxAuthenticationAttempts - attempt;
+
+            cout &lt;&lt; &quot;Invalid credentials.&quot;;
+
+            if (remainingAttempts &gt; 0) {
+
+                cout
+                    &lt;&lt; &quot; Attempts remaining: &quot;
+                    &lt;&lt; remainingAttempts;
+            }
+
+            cout &lt;&lt; &quot;\n&quot;;
+
+            logger_.write(
+                &quot;AUTH_FAILURE attempt=&quot; +
+                std::to_string(attempt));
+        }
+
+
+        cout
+            &lt;&lt; &quot;Maximum authentication attempts reached. &quot;
+            &lt;&lt; &quot;Access denied.\n&quot;;
+
+        logger_.write(&quot;AUTH_LOCKOUT&quot;);
+
+        return false;
+    }
+
+
+private:
+
+    /*
+     * Reads an environment variable safely.
+     *
+     * Microsoft Visual C++ uses _dupenv_s().
+     * Other compilers can use getenv().
+     */
+
+    static string readEnvironmentVariable(const char* name) {
+
+#ifdef _MSC_VER
+
+        char* value = nullptr;
+        size_t length = 0;
+
+        const errno_t result =
+            _dupenv_s(&amp;value, &amp;length, name);
+
+        if (result != 0 || value == nullptr) {
+            return &quot;&quot;;
+        }
+
+        const string environmentValue(value);
+
+        std::free(value);
+
+        return environmentValue;
+
+#else
+
+        const char* value = std::getenv(name);
+
+        if (value == nullptr) {
+            return &quot;&quot;;
+        }
+
+        return string(value);
+
+#endif
+    }
+
+
+    const Logger&amp; logger_;
+};
+
+
+// -----------------------------------------------------------------------------
+// Client Management
+// -----------------------------------------------------------------------------
+
+class ClientManager {
+
+public:
+
+    explicit ClientManager(const Logger&amp; logger)
+        : logger_(logger) {
+
+        /*
+         * Preserve the five client records recovered from the
+         * original CS 410 application.
+         */
+
+        clients_.push_back(
+            { 1, &quot;Bob Jones&quot;, ServiceType::Brokerage });
+
+        clients_.push_back(
+            { 2, &quot;Sarah Davis&quot;, ServiceType::Retirement });
+
+        clients_.push_back(
+            { 3, &quot;Amy Friendly&quot;, ServiceType::Brokerage });
+
+        clients_.push_back(
+            { 4, &quot;Johnny Smith&quot;, ServiceType::Brokerage });
+
+        clients_.push_back(
+            { 5, &quot;Carol Spears&quot;, ServiceType::Retirement });
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Display Clients
+    // -------------------------------------------------------------------------
+
+    void displayClients() const {
+
+        cout &lt;&lt; &quot;\nClient List\n&quot;;
+        cout &lt;&lt; &quot;-----------\n&quot;;
+
+
+        if (clients_.empty()) {
+
+            cout
+                &lt;&lt; &quot;No client records are currently available.\n\n&quot;;
+
+            return;
+        }
+
+
+        for (const Client&amp; client : clients_) {
+
+            cout
+                &lt;&lt; &quot;ID: &quot;
+                &lt;&lt; client.id
+                &lt;&lt; &quot; | Name: &quot;
+                &lt;&lt; client.name
+                &lt;&lt; &quot; | Service: &quot;
+                &lt;&lt; serviceTypeToString(client.service)
+                &lt;&lt; &#x27;\n&#x27;;
+        }
+
+        cout &lt;&lt; &#x27;\n&#x27;;
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Add Client
+    // -------------------------------------------------------------------------
+
+    void addClient() {
+
+        cout &lt;&lt; &quot;\nAdd Client\n&quot;;
+        cout &lt;&lt; &quot;----------\n&quot;;
+
+
+        const int nextId =
+            getNextClientId();
+
+
+        const string name =
+            InputValidator::readNonEmptyLine(
+                &quot;Client name: &quot;);
+
+
+        const ServiceType service =
+            readServiceType();
+
+
+        clients_.push_back(
+            { nextId, name, service });
+
+
+        logger_.write(
+            &quot;CLIENT_ADD id=&quot; +
+            std::to_string(nextId) +
+            &quot; name=&quot; +
+            name);
+
+
+        cout
+            &lt;&lt; &quot;Client added successfully with ID &quot;
+            &lt;&lt; nextId
+            &lt;&lt; &quot;.\n\n&quot;;
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Update Client Service
+    // -------------------------------------------------------------------------
+
+    void updateClientService() {
+
+        if (clients_.empty()) {
+
+            cout
+                &lt;&lt; &quot;There are no clients to update.\n\n&quot;;
+
+            return;
+        }
+
+
+        displayClients();
+
+
+        const int clientId =
+            readExistingClientId(
+                &quot;Enter the client ID to update: &quot;);
+
+
+        Client* client =
+            findClientById(clientId);
+
+
+        /*
+         * This check provides an additional defensive layer even though
+         * readExistingClientId() already verifies the ID.
+         */
+
+        if (client == nullptr) {
+
+            cout
+                &lt;&lt; &quot;Client could not be found.\n\n&quot;;
+
+            return;
+        }
+
+
+        const ServiceType oldService =
+            client-&gt;service;
+
+
+        cout
+            &lt;&lt; &quot;Current service: &quot;
+            &lt;&lt; serviceTypeToString(oldService)
+            &lt;&lt; &#x27;\n&#x27;;
+
+
+        const ServiceType newService =
+            readServiceType();
+
+
+        client-&gt;service =
+            newService;
+
+
+        logger_.write(
+            &quot;CLIENT_UPDATE id=&quot; +
+            std::to_string(clientId) +
+            &quot; oldService=&quot; +
+            serviceTypeToString(oldService) +
+            &quot; newService=&quot; +
+            serviceTypeToString(newService));
+
+
+        cout
+            &lt;&lt; &quot;Client service updated successfully.\n\n&quot;;
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Remove Client
+    // -------------------------------------------------------------------------
+
+    void removeClient() {
+
+        if (clients_.empty()) {
+
+            cout
+                &lt;&lt; &quot;There are no clients to remove.\n\n&quot;;
+
+            return;
+        }
+
+
+        displayClients();
+
+
+        const int clientId =
+            readExistingClientId(
+                &quot;Enter the client ID to remove: &quot;);
+
+
+        const auto match =
+            std::find_if(
+
+                clients_.begin(),
+                clients_.end(),
+
+                [clientId](const Client&amp; client) {
+
+                    return client.id == clientId;
+                });
+
+
+        if (match == clients_.end()) {
+
+            cout
+                &lt;&lt; &quot;Client could not be found.\n\n&quot;;
+
+            return;
+        }
+
+
+        const string removedName =
+            match-&gt;name;
+
+
+        clients_.erase(match);
+
+
+        logger_.write(
+            &quot;CLIENT_REMOVE id=&quot; +
+            std::to_string(clientId) +
+            &quot; name=&quot; +
+            removedName);
+
+
+        cout
+            &lt;&lt; &quot;Client removed successfully.\n\n&quot;;
+    }
+
+
+private:
+
+    vector&lt;Client&gt; clients_;
+
+    const Logger&amp; logger_;
+
+
+    // -------------------------------------------------------------------------
+    // Find Client
+    // -------------------------------------------------------------------------
+
+    Client* findClientById(int clientId) {
+
+        const auto match =
+            std::find_if(
+
+                clients_.begin(),
+                clients_.end(),
+
+                [clientId](const Client&amp; client) {
+
+                    return client.id == clientId;
+                });
+
+
+        if (match == clients_.end()) {
+            return nullptr;
+        }
+
+        return &amp;(*match);
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Check Whether Client Exists
+    // -------------------------------------------------------------------------
+
+    bool clientExists(int clientId) const {
+
+        return std::any_of(
+
+            clients_.begin(),
+            clients_.end(),
+
+            [clientId](const Client&amp; client) {
+
+                return client.id == clientId;
+            });
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Read Valid Client ID
+    // -------------------------------------------------------------------------
+
+    int readExistingClientId(
+        const string&amp; prompt) const {
+
+        while (true) {
+
+            const int clientId =
+                InputValidator::readIntInRange(
+
+                    prompt,
+
+                    1,
+
+                    std::numeric_limits&lt;int&gt;::max());
+
+
+            if (clientExists(clientId)) {
+
+                return clientId;
+            }
+
+
+            cout
+                &lt;&lt; &quot;No client exists with ID &quot;
+                &lt;&lt; clientId
+                &lt;&lt; &quot;. Please try again.\n&quot;;
+        }
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Read Service Type
+    // -------------------------------------------------------------------------
+
+    static ServiceType readServiceType() {
+
+        const int serviceChoice =
+            InputValidator::readIntInRange(
+
+                &quot;Select service &quot;
+                &quot;(1 = Brokerage, 2 = Retirement): &quot;,
+
+                Constants::kMinServiceChoice,
+
+                Constants::kMaxServiceChoice);
+
+
+        return static_cast&lt;ServiceType&gt;(
+            serviceChoice);
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Generate Next Client ID
+    // -------------------------------------------------------------------------
+
+    int getNextClientId() const {
+
+        int highestId = 0;
+
+
+        for (const Client&amp; client : clients_) {
+
+            if (client.id &gt; highestId) {
+
+                highestId =
+                    client.id;
+            }
+        }
+
+
+        return highestId + 1;
+    }
+};
+
+
+// -----------------------------------------------------------------------------
+// Main Application
+// -----------------------------------------------------------------------------
+
+class InvestmentCompanyApplication {
+
+public:
+
+    InvestmentCompanyApplication()
+
+        : logger_(&quot;cs499_audit.log&quot;),
+
+        authenticator_(logger_),
+
+        clientManager_(logger_) {
+    }
+
+
+    int run() {
+
+        cout
+            &lt;&lt; &quot;Created by Brianna Reed\n&quot;;
+
+        cout
+            &lt;&lt; &quot;Investment Company Client Management System\n&quot;;
+
+        cout
+            &lt;&lt; &quot;===========================================\n\n&quot;;
+
+
+        /*
+         * Authentication must succeed before the client management
+         * functionality becomes available.
+         */
+
+        if (!authenticator_.authenticate()) {
+
+            return 1;
+        }
+
+
+        bool running = true;
+
+
+        while (running) {
+
+            displayMenu();
+
+
+            const int choice =
+                InputValidator::readIntInRange(
+                    &quot;Selection: &quot;,
+                    1,
+                    5);
+
+
+            switch (choice) {
+
+            case 1:
+
+                clientManager_.displayClients();
+
+                break;
+
+
+            case 2:
+
+                clientManager_.addClient();
+
+                break;
+
+
+            case 3:
+
+                clientManager_.updateClientService();
+
+                break;
+
+
+            case 4:
+
+                clientManager_.removeClient();
+
+                break;
+
+
+            case 5:
+
+                running = false;
+
+                logger_.write(
+                    &quot;APPLICATION_EXIT&quot;);
+
+                cout
+                    &lt;&lt; &quot;Program closed safely.\n&quot;;
+
+                break;
+
+
+            default:
+
+                /*
+                 * InputValidator guarantees that only choices
+                 * 1 through 5 reach this switch statement.
+                 */
+
+                break;
+            }
+        }
+
+
+        return 0;
+    }
+
+
+private:
+
+    Logger logger_;
+
+    Authenticator authenticator_;
+
+    ClientManager clientManager_;
+
+
+    static void displayMenu() {
+
+        cout
+            &lt;&lt; &quot;What would you like to do?\n&quot;
+
+            &lt;&lt; &quot;1. Display client list\n&quot;
+
+            &lt;&lt; &quot;2. Add a client\n&quot;
+
+            &lt;&lt; &quot;3. Change a client&#x27;s service\n&quot;
+
+            &lt;&lt; &quot;4. Remove a client\n&quot;
+
+            &lt;&lt; &quot;5. Exit\n&quot;;
+    }
+};
+
+
+// -----------------------------------------------------------------------------
+// Program Entry Point
+// -----------------------------------------------------------------------------
+
+int main() {
+
+    InvestmentCompanyApplication application;
+
+    return application.run();
+}</code></pre></details></main><footer>Brianna Reed · CS 499 · Final portfolio revision October 18, 2026<br>Fictional client records and financial modeling are used throughout this demonstration</footer></body></html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Code Review | Brianna Reed</title><meta name="description" content="Brianna Reed Computer Science Capstone portfolio showing software design, algorithms and database enhancements"><link rel="stylesheet" href="assets/style.css"></head><body><a class="skip" href="#main">Skip to content</a><header><div class="brand">Brianna Reed</div><p>Computer Science Capstone · Southern New Hampshire University</p><nav aria-label="Main navigation"><a href="index.html">Self assessment</a><a href="code-review.html" aria-current="page">Code review</a><a href="engineering.html">Software design</a><a href="algorithms.html">Algorithms</a><a href="databases.html">Databases</a><a href="evidence.html">Evidence and files</a></nav></header><main id="main"><p class="eyebrow">Milestone One</p><h1>Code review and enhancement plan</h1><p class="lead">This review examines the original recovered application, identifies limitations and explains the planned changes across the three capstone categories.</p><video controls preload="metadata" playsinline aria-label="Brianna Reed CS 499 code review"><source src="assets/video/code-review.mp4" type="video/mp4">Your browser does not support video playback. Use the download link below.</video><p class="meta">17 minutes 15 seconds · Full recording in a compressed web copy · Narration and screen recording</p><div class="links"><a class="button" href="assets/video/code-review.mp4">Open or download the video</a><a class="button secondary" href="https://drive.google.com/file/d/1BgyAcO68g8OU292R6neYbCQJ7Obmo71b/view">Backup Drive copy</a></div><h2>What the review covers</h2><p>The baseline authenticates a user, displays five clients and changes a service choice. The review explains the global variables, repeated conditions, unsafe input and embedded credential behavior before planning modular design, purpose selected data structures and database persistence.</p><p class="notice">The historical source contains the original insecure credential comparison for review. The later enhancements change that behavior. It is not presented as a recommended authentication design.</p><h2>Read the original code</h2><div class="links"><a class="button" href="source/original.cpp">Download original source</a><a class="button secondary" href="source/code-review-baseline.cpp">Download code review baseline</a></div><details><summary>Read the original source on this page</summary><pre><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+// Original global data recovered from the binary.
+char username[20];
+
+char name1[] = &quot;Bob Jones&quot;;
+char name2[] = &quot;Sarah Davis&quot;;
+char name3[] = &quot;Amy Friendly&quot;;
+char name4[] = &quot;Johnny Smith&quot;;
+char name5[] = &quot;Carol Spears&quot;;
+
+int num1 = 1;
+int num2 = 2;
+int num3 = 1;
+int num4 = 1;
+int num5 = 2;
+
+int choice;
+int changechoice;
+int newservice;
+
+char password[20] = &quot;123&quot;;
+int answer;
+
+// Function declarations.
+int CheckUserPermissionAccess();
+void DisplayInfo();
+void ChangeCustomerChoice();
+
+int main()
+{
+    // Required added output statement for Project One.
+    cout &lt;&lt; &quot;Created by Brianna Reed&quot; &lt;&lt; endl;
+
+    cout &lt;&lt; &quot;Hello! Welcome to our Investment Company\n&quot;;
+
+    // Continue asking for credentials until the correct password is entered.
+    do
+    {
+        answer = CheckUserPermissionAccess();
+
+        if (answer != 1)
+        {
+            cout &lt;&lt; &quot;Invalid Password. Please try again\n&quot;;
+        }
+
+    } while (answer != 1);
+
+    // Main application menu.
+    do
+    {
+        cout &lt;&lt; &quot;What would you like to do?\n&quot;;
+        cout &lt;&lt; &quot;DISPLAY the client list (enter 1)\n&quot;;
+        cout &lt;&lt; &quot;CHANGE a client&#x27;s choice (enter 2)\n&quot;;
+        cout &lt;&lt; &quot;Exit the program.. (enter 3)\n&quot;;
+
+        cin &gt;&gt; choice;
+
+        cout &lt;&lt; &quot;You chose &quot; &lt;&lt; choice &lt;&lt; endl;
+
+        if (choice == 1)
+        {
+            DisplayInfo();
+        }
+        else if (choice == 2)
+        {
+            ChangeCustomerChoice();
+        }
+
+    } while (choice != 3);
+
+    return 0;
+}
+
+int CheckUserPermissionAccess()
+{
+    string enteredPassword = &quot;&quot;;
+    int passwordMatch = 0;
+
+    cout &lt;&lt; &quot;Enter your username: \n&quot;;
+    cin &gt;&gt; username;
+
+    cout &lt;&lt; &quot;Enter your password: \n&quot;;
+    cin &gt;&gt; enteredPassword;
+
+    // The original binary compares the entered password with &quot;123&quot;.
+    passwordMatch = enteredPassword.compare(&quot;123&quot;);
+
+    if (passwordMatch == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 2;
+    }
+}
+
+void DisplayInfo()
+{
+    cout &lt;&lt; &quot;  Client&#x27;s Name    Service Selected (1 = Brokerage, 2 = Retirement)&quot; &lt;&lt; endl;
+
+    cout &lt;&lt; &quot;1. &quot; &lt;&lt; name1 &lt;&lt; &quot; selected option &quot; &lt;&lt; num1 &lt;&lt; endl;
+    cout &lt;&lt; &quot;2. &quot; &lt;&lt; name2 &lt;&lt; &quot; selected option &quot; &lt;&lt; num2 &lt;&lt; endl;
+    cout &lt;&lt; &quot;3. &quot; &lt;&lt; name3 &lt;&lt; &quot; selected option &quot; &lt;&lt; num3 &lt;&lt; endl;
+    cout &lt;&lt; &quot;4. &quot; &lt;&lt; name4 &lt;&lt; &quot; selected option &quot; &lt;&lt; num4 &lt;&lt; endl;
+    cout &lt;&lt; &quot;5. &quot; &lt;&lt; name5 &lt;&lt; &quot; selected option &quot; &lt;&lt; num5 &lt;&lt; endl;
+}
+
+void ChangeCustomerChoice()
+{
+    cout &lt;&lt; &quot;Enter the number of the client that you wish to change\n&quot;;
+    cin &gt;&gt; changechoice;
+
+    cout &lt;&lt; &quot;Please enter the client&#x27;s new service choice (1 = Brokerage, 2 = Retirement)\n&quot;;
+    cin &gt;&gt; newservice;
+
+    if (changechoice == 1)
+    {
+        num1 = newservice;
+    }
+    else if (changechoice == 2)
+    {
+        num2 = newservice;
+    }
+    else if (changechoice == 3)
+    {
+        num3 = newservice;
+    }
+    else if (changechoice == 4)
+    {
+        num4 = newservice;
+    }
+    else if (changechoice == 5)
+    {
+        num5 = newservice;
+    }
+}</code></pre></details></main><footer>Brianna Reed · CS 499 · Final portfolio revision October 18, 2026<br>Fictional client records and financial modeling are used throughout this demonstration</footer></body></html>

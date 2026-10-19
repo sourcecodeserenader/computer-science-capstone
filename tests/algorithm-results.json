@@ -1,0 +1,114 @@
+[
+  {
+    "case": "exact_id",
+    "passed": true,
+    "expected_ids": [
+      2
+    ],
+    "actual_ids": [
+      2
+    ]
+  },
+  {
+    "case": "missing_id",
+    "passed": true,
+    "expected_ids": [],
+    "actual_ids": []
+  },
+  {
+    "case": "prefix",
+    "passed": true,
+    "expected_ids": [
+      2
+    ],
+    "actual_ids": [
+      2
+    ]
+  },
+  {
+    "case": "duplicate_name",
+    "passed": true,
+    "expected_ids": [
+      1,
+      6
+    ],
+    "actual_ids": [
+      1,
+      6
+    ]
+  },
+  {
+    "case": "top_k",
+    "passed": true,
+    "expected_ids": [
+      5,
+      4
+    ],
+    "actual_ids": [
+      5,
+      4
+    ]
+  },
+  {
+    "case": "undo_update",
+    "passed": true,
+    "expected_ids": [
+      1
+    ],
+    "actual_ids": [
+      1
+    ]
+  },
+  {
+    "case": "undo_delete",
+    "passed": true,
+    "expected_ids": [
+      1
+    ],
+    "actual_ids": [
+      1
+    ]
+  },
+  {
+    "case": "index_rebuild",
+    "passed": true,
+    "expected_ids": [],
+    "actual_ids": []
+  },
+  {
+    "case": "sort_name",
+    "passed": true,
+    "expected_ids": [
+      3,
+      1,
+      5,
+      4,
+      2
+    ],
+    "actual_ids": [
+      3,
+      1,
+      5,
+      4,
+      2
+    ]
+  },
+  {
+    "case": "filter_retirement",
+    "passed": true,
+    "expected_ids": [
+      2,
+      5
+    ],
+    "actual_ids": [
+      2,
+      5
+    ]
+  },
+  {
+    "case": "analytics",
+    "passed": true,
+    "expected_ids": [],
+    "actual_ids": []
+  }
+]

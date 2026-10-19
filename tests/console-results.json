@@ -1,0 +1,44 @@
+[
+  {
+    "milestone": 2,
+    "case": "valid login and clean exit",
+    "passed": true,
+    "actual_exit": 0,
+    "expected_exit": 0
+  },
+  {
+    "milestone": 2,
+    "case": "three failed authentication attempts",
+    "passed": true,
+    "actual_exit": 1,
+    "expected_exit": 1
+  },
+  {
+    "milestone": 2,
+    "case": "invalid menu input rejected then valid exit",
+    "passed": true,
+    "actual_exit": 0,
+    "expected_exit": 0
+  },
+  {
+    "milestone": 3,
+    "case": "valid login and clean exit",
+    "passed": true,
+    "actual_exit": 0,
+    "expected_exit": 0
+  },
+  {
+    "milestone": 3,
+    "case": "three failed authentication attempts",
+    "passed": true,
+    "actual_exit": 1,
+    "expected_exit": 1
+  },
+  {
+    "milestone": 3,
+    "case": "invalid menu input rejected then valid exit",
+    "passed": true,
+    "actual_exit": 0,
+    "expected_exit": 0
+  }
+]

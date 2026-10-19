@@ -1,0 +1,298 @@
+PASS login
+PASS populated lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS populated lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS populated lane
+PASS row maps to stored ticket
+PASS ticket in correct lane
+PASS each ticket displayed once
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS ticket header sort direction
+PASS cross lane selection maps correctly
+PASS selection preserved after sorting
+PASS cross lane selection maps correctly
+PASS selection preserved after sorting
+PASS cross lane selection maps correctly
+PASS selection preserved after sorting
+PASS UI capture
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client header sort direction
+PASS client selection preserved after sorting
+PASS actual header mouse click changes sort
+PASS UI capture
+PASS UI capture
+PASS 25 clients preserved
+PASS no duplicate candidates
